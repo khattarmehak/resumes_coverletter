@@ -11,6 +11,627 @@
 </head>
 <body>
     <div id="root"></div>
-    <script type="text/babel" src="app.js"></script>
+    
+    <script type="text/babel">
+        const { useState } = React;
+
+        function ResumeGenerator() {
+          const [jobDescription, setJobDescription] = useState('');
+          const [additionalInfo, setAdditionalInfo] = useState('');
+          const [loading, setLoading] = useState(false);
+          const [resumeText, setResumeText] = useState('');
+          const [coverLetterText, setCoverLetterText] = useState('');
+          const [copied, setCopied] = useState({ resume: false, cover: false });
+          const [error, setError] = useState('');
+          const [missingInfo, setMissingInfo] = useState([]);
+          const [showInfoPrompt, setShowInfoPrompt] = useState(false);
+
+          const masterContent = {
+            name: "MEHAK KHATTAR, C.M.",
+            contact: "khattarmehak1@gmail.com | 416.893.1395 | Mehak Khattar | LinkedIn",
+            professionalProfile: "Creative and data-savvy social media leader with 4+ years of experience blending entertainment and marketing to drive growth across TikTok, Instagram, LinkedIn, YouTube, and more. Proven track record leading UGC campaigns, managing creator platforms, and delivering high-conversion content strategies. Expertise in social analytics, brand storytelling, and content production. Strategic thinker with a hands-on edge, known for bringing big ideas to life and building loyal communities. Legally eligible to work in Canada.",
+            
+            experiences: [
+              {
+                company: "VisaServe Immigration Law P.C.",
+                dates: "01.2025 to present",
+                title: "Content & Client Specialist (Freelance)",
+                bullets: [
+                  "Grew reach by 228% and engagement by 4x through tailored educational reels and carousel series",
+                  "Created a unified social content system across TikTok, Instagram, YouTube Shorts, and X, increasing organic inbound inquiries for legal services.",
+                  "Designed weekly strategy decks with hooks, trends, and conversion copy for video and static content."
+                ]
+              },
+              {
+                company: "Ahluwalia Law Offices",
+                dates: "03.2025 to present",
+                title: "Content Marketing Specialist (Freelance)",
+                bullets: [
+                  "Led SEO-backed blog strategy and cross-platform content to reach U.S. immigrant audiences.",
+                  "Boosted organic impressions on X by 460% through consistent content hooks tied to real-time immigration news.",
+                  "Delivered weekly analytics reports and audience insights, improving CTR by 30% across content types.",
+                  "Established many process-related efficiencies: planning calendars, detailed forecasting tools for media buying, and support on new product strategy and selling kits"
+                ]
+              },
+              {
+                company: "CrackerJack Television LLC.",
+                dates: "06.2024 to 12.2024",
+                title: "Digital Strategist",
+                bullets: [
+                  "Managed communications and developed social presence for a new television network.",
+                  "Created and scheduled campaigns for two flagship non-scripted shows, engaging music and culture audiences across Canada.",
+                  "Directed short-form behind-the-scenes content for YouTube, IG Reels, and TikTok."
+                ]
+              },
+              {
+                company: "Growster Marketing",
+                dates: "06.2022 to 08.2023",
+                title: "Operations Manager",
+                bullets: [
+                  "Managed a creative and marketing team of six; served a diverse client base including e-commerce, health, and education startups",
+                  "Developed digital branding, pitch decks, and marketing collateral for over 10 SMB clients",
+                  "Directed campaign strategies, performance reviews, and client communication workflows"
+                ]
+              }
+            ],
+            
+            education: [
+              "Chartered Marketer (C.M.) - Canadian Marketing Association - 2025",
+              "Postgraduate Certificate, Film & Multiplatform Storytelling - Humber College, Dean's List - 2024",
+              "Bachelor of Arts, Media & Communication - Amity University - 2021"
+            ],
+            
+            technicalSkills: "Canva | MS Office | Nielsen | Adobe Suite | Meta, X, YouTube | Google Analytics | SalesForce | MailChimp | Hootsuite | Sprout Social | Buffer | CapCut | DaVinci Resolve | WordPress | Asana | Trello"
+          };
+
+          const extractCompanyName = (jd) => {
+            const lines = jd.split('\n').filter(line => line.trim());
+            for (let i = 0; i < Math.min(15, lines.length); i++) {
+              const line = lines[i].trim();
+              if (line.length > 2 && line.length < 60 && 
+                  !line.toLowerCase().includes('job') && 
+                  !line.toLowerCase().includes('position') &&
+                  !line.toLowerCase().includes('apply') &&
+                  !/^\d/.test(line)) {
+                return line;
+              }
+            }
+            return null;
+          };
+
+          const extractJobTitle = (jd) => {
+            const titleKeywords = ['manager', 'coordinator', 'specialist', 'associate', 'strategist', 'lead', 'director'];
+            const lines = jd.split('\n');
+            
+            for (let i = 0; i < Math.min(10, lines.length); i++) {
+              const line = lines[i].trim();
+              const lower = line.toLowerCase();
+              if (titleKeywords.some(keyword => lower.includes(keyword)) && line.length < 80) {
+                return line;
+              }
+            }
+            return null;
+          };
+
+          const convertToHTML = (resumeText, coverLetterText) => {
+            const sections = {
+              name: '',
+              contact: '',
+              profile: '',
+              expertise: [],
+              achievements: { campaign: [], platform: [], production: [] },
+              experiences: [],
+              education: [],
+              skills: ''
+            };
+
+            const lines = resumeText.split('\n');
+            let currentSection = '';
+            let currentSubsection = '';
+            let currentExp = null;
+
+            for (let i = 0; i < lines.length; i++) {
+              const line = lines[i].trim();
+              if (!line) continue;
+
+              if (line.includes('KHATTAR') && i < 3) {
+                sections.name = line;
+              } else if (line.includes('@') && line.includes('|')) {
+                sections.contact = line;
+              } else if (line === 'PROFESSIONAL PROFILE') {
+                currentSection = 'profile';
+              } else if (line === 'AREAS OF EXPERTISE') {
+                currentSection = 'expertise';
+              } else if (line === 'CAREER ACHIEVEMENTS') {
+                currentSection = 'achievements';
+              } else if (line === 'PROFESSIONAL EXPERIENCE') {
+                currentSection = 'experience';
+              } else if (line.includes('EDUCATION')) {
+                currentSection = 'education';
+              } else if (line === 'TECHNICAL SKILLS') {
+                currentSection = 'skills';
+              } else if (currentSection === 'profile' && !line.match(/^[A-Z\s]+$/)) {
+                sections.profile += line + ' ';
+              } else if (currentSection === 'expertise' && !line.match(/^[A-Z\s]+$/)) {
+                sections.expertise.push(line);
+              } else if (currentSection === 'achievements') {
+                if (line.includes('Campaign Results:')) {
+                  currentSubsection = 'campaign';
+                } else if (line.includes('Platform Success:')) {
+                  currentSubsection = 'platform';
+                } else if (line.includes('Production and Innovation:')) {
+                  currentSubsection = 'production';
+                } else if (line.startsWith('•')) {
+                  sections.achievements[currentSubsection].push(line.substring(1).trim());
+                }
+              } else if (currentSection === 'experience') {
+                if (line.match(/\d{2}\.\d{4}/) && !line.startsWith('•')) {
+                  if (currentExp) sections.experiences.push(currentExp);
+                  const parts = line.split(/\s{2,}/);
+                  currentExp = { 
+                    company: parts[0] || line.split(/\d{2}\.\d{4}/)[0].trim(),
+                    dates: line.match(/\d{2}\.\d{4}.*$/)?.[0] || '',
+                    title: '',
+                    bullets: []
+                  };
+                } else if (currentExp && !currentExp.title && !line.startsWith('•')) {
+                  currentExp.title = line;
+                } else if (currentExp && line.startsWith('•')) {
+                  currentExp.bullets.push(line.substring(1).trim());
+                }
+              } else if (currentSection === 'education' && !line.match(/^[A-Z\s,]+$/)) {
+                sections.education.push(line);
+              } else if (currentSection === 'skills') {
+                sections.skills += line + ' ';
+              }
+            }
+            
+            if (currentExp) sections.experiences.push(currentExp);
+
+            const generateExpertiseTable = () => {
+              const col1 = [], col2 = [], col3 = [];
+              sections.expertise.forEach((item, idx) => {
+                if (idx % 3 === 0) col1.push(item);
+                else if (idx % 3 === 1) col2.push(item);
+                else col3.push(item);
+              });
+
+              const maxRows = Math.max(col1.length, col2.length, col3.length);
+              let rows = '';
+              
+              for (let i = 0; i < maxRows; i++) {
+                rows += `<tr>
+                  <td>${col1[i] || '&nbsp;'}</td>
+                  <td>${col2[i] || '&nbsp;'}</td>
+                  <td>${col3[i] || '&nbsp;'}</td>
+                </tr>`;
+              }
+              
+              return rows;
+            };
+
+            const resumeHTML = `<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body {
+            font-family: Garamond, serif;
+            font-size: 11pt;
+            margin: 1in;
+            line-height: 1.15;
+        }
+        .name {
+            font-size: 24pt;
+            font-weight: bold;
+            margin-bottom: 6pt;
+        }
+        .contact {
+            font-size: 11pt;
+            margin-bottom: 12pt;
+        }
+        .heading {
+            font-size: 11pt;
+            font-weight: bold;
+            margin-top: 12pt;
+            margin-bottom: 6pt;
+            text-transform: uppercase;
+        }
+        .expertise-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 12pt;
+        }
+        .expertise-table td {
+            width: 33.33%;
+            padding: 3pt 6pt;
+            border-left: 1pt solid black;
+            border-right: 1pt solid black;
+            vertical-align: top;
+        }
+        .expertise-table td:first-child { border-left: none; }
+        .expertise-table td:last-child { border-right: none; }
+        .subheading {
+            font-weight: bold;
+            margin-top: 6pt;
+        }
+        .job-header {
+            margin-top: 9pt;
+            font-weight: bold;
+        }
+        .job-company {
+            display: inline-block;
+            width: 60%;
+        }
+        .job-dates {
+            display: inline-block;
+            width: 38%;
+            text-align: right;
+        }
+        .job-title {
+            font-weight: bold;
+            margin-bottom: 3pt;
+        }
+        ul {
+            margin: 3pt 0;
+            padding-left: 0.3in;
+        }
+        li { margin-bottom: 3pt; }
+        .education-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 6pt;
+        }
+        .education-table td {
+            padding: 3pt 6pt;
+            border: 1pt solid black;
+        }
+        .education-table td:nth-child(2) { font-weight: bold; }
+        p { margin: 0 0 6pt 0; }
+    </style>
+</head>
+<body>
+    <div class="name">${sections.name}</div>
+    <div class="contact">${sections.contact}</div>
+    
+    <div class="heading">Professional Profile</div>
+    <p>${sections.profile.trim()}</p>
+    
+    <div class="heading">Areas of Expertise</div>
+    <table class="expertise-table">
+        ${generateExpertiseTable()}
+    </table>
+    
+    <div class="heading">Career Achievements</div>
+    <div class="subheading">Campaign Results:</div>
+    <ul>${sections.achievements.campaign.map(a => `<li>${a}</li>`).join('')}</ul>
+    <div class="subheading">Platform Success:</div>
+    <ul>${sections.achievements.platform.map(a => `<li>${a}</li>`).join('')}</ul>
+    <div class="subheading">Production and Innovation:</div>
+    <ul>${sections.achievements.production.map(a => `<li>${a}</li>`).join('')}</ul>
+    
+    <div class="heading">Professional Experience</div>
+    ${sections.experiences.map(exp => `
+        <div class="job-header">
+            <span class="job-company">${exp.company}</span>
+            <span class="job-dates">${exp.dates}</span>
+        </div>
+        <div class="job-title">${exp.title}</div>
+        <ul>${exp.bullets.map(b => `<li>${b}</li>`).join('')}</ul>
+    `).join('')}
+    
+    <div class="heading">Education, Professional Training and Certifications</div>
+    <table class="education-table">
+        ${sections.education.map(edu => {
+            const parts = edu.split(' - ');
+            return `<tr>
+                <td style="width:40%">${parts[0] || ''}</td>
+                <td style="width:40%">${parts[1] || ''}</td>
+                <td style="width:20%">${parts[2] || ''}</td>
+            </tr>`;
+        }).join('')}
+    </table>
+    
+    <div class="heading">Technical Skills</div>
+    <p>${sections.skills.trim()}</p>
+</body>
+</html>`;
+
+            const coverLetterHTML = `<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body {
+            font-family: Garamond, serif;
+            font-size: 11pt;
+            margin: 1in;
+            line-height: 1.5;
+        }
+        .name {
+            font-size: 24pt;
+            font-weight: bold;
+            margin-bottom: 6pt;
+        }
+        .contact {
+            font-size: 11pt;
+            margin-bottom: 18pt;
+        }
+        p { margin: 9pt 0; }
+    </style>
+</head>
+<body>
+    ${coverLetterText.split('\n\n').map(para => `<p>${para.trim()}</p>`).join('')}
+</body>
+</html>`;
+
+            return { resumeHTML, coverLetterHTML };
+          };
+
+          const downloadHTML = (html, filename) => {
+            const blob = new Blob([html], { type: 'text/html' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            a.click();
+            URL.revokeObjectURL(url);
+          };
+
+          const generateContent = async () => {
+            if (!jobDescription.trim()) {
+              setError('Please paste a job description');
+              return;
+            }
+
+            setLoading(true);
+            setError('');
+            setMissingInfo([]);
+            setShowInfoPrompt(false);
+
+            try {
+              const companyName = extractCompanyName(jobDescription);
+              const jobTitle = extractJobTitle(jobDescription);
+              
+              const missing = [];
+              if (!companyName) missing.push('company name');
+              if (!jobTitle) missing.push('job title');
+              
+              if (missing.length > 0 && !additionalInfo) {
+                setMissingInfo(missing);
+                setShowInfoPrompt(true);
+                setLoading(false);
+                return;
+              }
+
+              const prompt = `You are an expert resume writer. Create tailored resume and cover letter for this job.
+
+JOB DESCRIPTION:
+${jobDescription}
+
+${companyName ? `Company: ${companyName}` : ''}
+${jobTitle ? `Job Title: ${jobTitle}` : ''}
+${additionalInfo ? `Additional Info: ${additionalInfo}` : ''}
+
+MASTER CONTENT:
+${JSON.stringify(masterContent, null, 2)}
+
+CRITICAL: Adjust freelance titles at VisaServe and Ahluwalia to match the target job title (e.g., if applying for "Social Media Manager", change to "Social Media Manager (Freelance)").
+
+Create resume in this exact format:
+
+MEHAK KHATTAR, C.M.
+khattarmehak1@gmail.com | 416.893.1395 | Mehak Khattar | LinkedIn
+
+PROFESSIONAL PROFILE
+[3-4 sentences relevant to this role]
+
+AREAS OF EXPERTISE
+[List 15 skills, one per line, prioritizing JD keywords]
+
+CAREER ACHIEVEMENTS
+Campaign Results:
+- [2 relevant achievements]
+
+Platform Success:
+- [2 relevant achievements]
+
+Production and Innovation:
+- [2 relevant achievements]
+
+PROFESSIONAL EXPERIENCE
+[2-4 most relevant positions with adjusted titles for freelance roles]
+
+EDUCATION, PROFESSIONAL TRAINING AND CERTIFICATIONS
+Chartered Marketer (C.M.) - Canadian Marketing Association - 2025
+Postgraduate Certificate, Film & Multiplatform Storytelling - Humber College, Dean's List - 2024
+Bachelor of Arts, Media & Communication - Amity University - 2021
+
+TECHNICAL SKILLS
+[All tools, emphasizing JD mentions]
+
+Also create cover letter:
+MEHAK KHATTAR, C.M.
+khattarmehak1@gmail.com | 416.893.1395 | Mehak Khattar | LinkedIn
+
+${new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+
+${companyName || '[Company Name]'}
+
+Re: Application for ${jobTitle || '[Job Title]'}
+
+Dear Hiring Team,
+
+[4-5 paragraphs]
+
+Sincerely,
+Mehak Khattar, Chartered Marketer (C.M.)
+
+Return only JSON:
+{
+  "resume": "full text",
+  "coverLetter": "full text"
+}`;
+
+              const response = await fetch('/api/generate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ prompt })
+              });
+
+              if (!response.ok) throw new Error('Generation failed');
+
+              const data = await response.json();
+              const content = data.content[0].text;
+              
+              const jsonMatch = content.match(/\{[\s\S]*\}/);
+              if (jsonMatch) {
+                const result = JSON.parse(jsonMatch[0]);
+                setResumeText(result.resume);
+                setCoverLetterText(result.coverLetter);
+              } else {
+                throw new Error('Could not parse response');
+              }
+
+            } catch (err) {
+              setError(`Error: ${err.message}`);
+            } finally {
+              setLoading(false);
+            }
+          };
+
+          const handleCopy = (text, type) => {
+            navigator.clipboard.writeText(text);
+            setCopied({ ...copied, [type]: true });
+            setTimeout(() => setCopied({ ...copied, [type]: false }), 2000);
+          };
+
+          const handleDownloadHTML = () => {
+            const { resumeHTML, coverLetterHTML } = convertToHTML(resumeText, coverLetterText);
+            downloadHTML(resumeHTML, 'Mehak_Khattar_Resume.html');
+            downloadHTML(coverLetterHTML, 'Mehak_Khattar_Cover_Letter.html');
+          };
+
+          return (
+            <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50 p-4">
+              <div className="max-w-7xl mx-auto">
+                <div className="bg-white rounded-lg shadow-xl p-8 mb-6">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="text-indigo-600 text-3xl">💼</div>
+                    <h1 className="text-3xl font-bold text-gray-800">AI Resume & Cover Letter Generator</h1>
+                  </div>
+                  
+                  <p className="text-gray-600 mb-6">
+                    Paste job description → Get tailored HTML files → Open in Word → Save as DOCX
+                  </p>
+
+                  <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6">
+                    <p className="text-sm text-gray-800">
+                      <strong>Pro Tip:</strong> Speed matters! ATS systems sort by application order. Apply fast!
+                    </p>
+                  </div>
+
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Job Description
+                      </label>
+                      <textarea
+                        value={jobDescription}
+                        onChange={(e) => setJobDescription(e.target.value)}
+                        className="w-full h-64 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                        placeholder="Paste the entire job description here..."
+                      />
+                    </div>
+
+                    {showInfoPrompt && (
+                      <div className="bg-blue-50 border-l-4 border-blue-400 p-4">
+                        <p className="text-sm text-gray-800 mb-2">
+                          <strong>Missing:</strong> {missingInfo.join(' and ')}
+                        </p>
+                        <input
+                          type="text"
+                          value={additionalInfo}
+                          onChange={(e) => setAdditionalInfo(e.target.value)}
+                          className="w-full px-4 py-2 border border-gray-300 rounded"
+                          placeholder={`Enter ${missingInfo.join(' and ')}...`}
+                        />
+                      </div>
+                    )}
+
+                    {error && (
+                      <div className="bg-red-50 border-l-4 border-red-400 p-4">
+                        <p className="text-sm text-red-800">{error}</p>
+                      </div>
+                    )}
+
+                    <button
+                      onClick={generateContent}
+                      disabled={loading}
+                      className="w-full bg-indigo-600 text-white py-4 px-6 rounded-lg hover:bg-indigo-700 disabled:bg-gray-400 font-medium text-lg"
+                    >
+                      {loading ? '⏳ Generating...' : '📄 Generate Documents'}
+                    </button>
+                  </div>
+                </div>
+
+                {(resumeText || coverLetterText) && (
+                  <div className="bg-white rounded-lg shadow-xl p-6 mb-6">
+                    <h2 className="text-2xl font-bold text-gray-800 mb-4">Generated Documents</h2>
+                    
+                    <div className="flex gap-4 mb-6">
+                      <button
+                        onClick={handleDownloadHTML}
+                        className="flex-1 bg-indigo-600 text-white py-3 px-6 rounded-lg hover:bg-indigo-700 font-medium"
+                      >
+                        ⬇️ Download Both as HTML
+                      </button>
+                      <button
+                        onClick={() => handleCopy(resumeText, 'resume')}
+                        className="px-6 py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-700"
+                      >
+                        {copied.resume ? '✓ Copied Resume!' : '📋 Copy Resume'}
+                      </button>
+                      <button
+                        onClick={() => handleCopy(coverLetterText, 'cover')}
+                        className="px-6 py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-700"
+                      >
+                        {copied.cover ? '✓ Copied Letter!' : '📋 Copy Letter'}
+                      </button>
+                    </div>
+
+                    <div className="bg-blue-50 border-l-4 border-blue-500 p-4 mb-4">
+                      <p className="font-bold text-blue-900 mb-2">📝 How to use HTML files:</p>
+                      <ol className="list-decimal ml-5 text-blue-800 space-y-1 text-sm">
+                        <li>Click "Download Both as HTML"</li>
+                        <li>Right-click each file → Open with Microsoft Word</li>
+                        <li>In Word: File → Save As → Choose ".docx"</li>
+                        <li>Perfect Garamond formatting preserved! 🎉</li>
+                      </ol>
+                    </div>
+
+                    <div className="grid md:grid-cols-2 gap-4">
+                      <div>
+                        <h3 className="font-bold text-gray-800 mb-2">Resume Preview:</h3>
+                        <div className="bg-gray-50 rounded p-4 max-h-96 overflow-y-auto">
+                          <pre className="whitespace-pre-wrap text-xs font-mono">{resumeText}</pre>
+                        </div>
+                      </div>
+                      <div>
+                        <h3 className="font-bold text-gray-800 mb-2">Cover Letter Preview:</h3>
+                        <div className="bg-gray-50 rounded p-4 max-h-96 overflow-y-auto">
+                          <pre className="whitespace-pre-wrap text-xs font-mono">{coverLetterText}</pre>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          );
+        }
+
+        ReactDOM.render(<ResumeGenerator />, document.getElementById('root'));
+    </script>
 </body>
 </html>
