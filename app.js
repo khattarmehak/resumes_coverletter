@@ -1,5 +1,4 @@
 const { useState } = React;
-const { Loader2, Download, Copy, CheckCircle2, FileText, Briefcase } = lucide;
 
 function ResumeGenerator() {
   const [jobDescription, setJobDescription] = useState('');
@@ -13,7 +12,7 @@ function ResumeGenerator() {
   const [showInfoPrompt, setShowInfoPrompt] = useState(false);
 
   const masterContent = {
-    name: "MEHAK KHATTAR, C.M.(in progress)",
+    name: "MEHAK KHATTAR, C.M.",
     contact: "khattarmehak1@gmail.com | 416.893.1395 | Mehak Khattar | LinkedIn",
     professionalProfile: "Creative and data-savvy social media leader with 4+ years of experience blending entertainment and marketing to drive growth across TikTok, Instagram, LinkedIn, YouTube, and more. Proven track record leading UGC campaigns, managing creator platforms, and delivering high-conversion content strategies. Expertise in social analytics, brand storytelling, and content production. Strategic thinker with a hands-on edge, known for bringing big ideas to life and building loyal communities. Legally eligible to work in Canada.",
     
@@ -42,25 +41,25 @@ function ResumeGenerator() {
       {
         company: "VisaServe Immigration Law P.C.",
         dates: "01.2025 to present",
-        title: "Content & Client Manager",
+        title: "Content & Client Specialist (Freelance)",
         bullets: [
           "Grew reach by 228% and engagement by 4x through tailored educational reels and carousel series",
           "Created a unified social content system across TikTok, Instagram, YouTube Shorts, and X, increasing organic inbound inquiries for legal services.",
           "Designed weekly strategy decks with hooks, trends, and conversion copy for video and static content."
         ],
-        keywords: ["social media", "content strategy", "engagement", "analytics", "TikTok", "Instagram", "YouTube", "digital marketing", "client management"]
+        keywords: ["social media", "content strategy", "engagement", "analytics", "TikTok", "Instagram", "YouTube", "digital marketing", "client management", "content specialist", "social media specialist", "marketing coordinator"]
       },
       {
         company: "Ahluwalia Law Offices",
         dates: "03.2025 to present",
-        title: "Content Marketing Consultant",
+        title: "Content Marketing Specialist (Freelance)",
         bullets: [
           "Led SEO-backed blog strategy and cross-platform content to reach U.S. immigrant audiences.",
           "Boosted organic impressions on X by 460% through consistent content hooks tied to real-time immigration news.",
           "Delivered weekly analytics reports and audience insights, improving CTR by 30% across content types.",
           "Established many process-related efficiencies: planning calendars, detailed forecasting tools for media buying, and support on new product strategy and selling kits"
         ],
-        keywords: ["SEO", "content marketing", "analytics", "reporting", "strategy", "content calendar", "LinkedIn", "email marketing", "digital marketing"]
+        keywords: ["SEO", "content marketing", "analytics", "reporting", "strategy", "content calendar", "LinkedIn", "email marketing", "digital marketing", "marketing specialist", "content coordinator"]
       },
       {
         company: "CrackerJack Television LLC.",
@@ -98,7 +97,7 @@ function ResumeGenerator() {
     ],
     
     education: [
-      "Chartered Marketer Designation - Canadian Marketing Association - In progress",
+      "Chartered Marketer (C.M.) - Canadian Marketing Association - 2025",
       "Postgraduate Certificate, Film & Multiplatform Storytelling - Humber College, Dean's List - 2024",
       "Bachelor of Arts, Media & Communication - Amity University - 2021"
     ],
@@ -174,29 +173,46 @@ ${jobTitle ? `Detected Job Title: ${jobTitle}` : ''}
 CANDIDATE'S MASTER CONTENT:
 ${JSON.stringify(masterContent, null, 2)}
 
+IMPORTANT INSTRUCTIONS FOR FREELANCE ROLES:
+For VisaServe Immigration Law P.C. and Ahluwalia Law Offices positions, you MUST adjust the job titles to match the role being applied for. These are freelance positions where Mehak performed multiple functions.
+
+Examples:
+- If applying for "Social Media Manager" → change title to "Social Media Manager (Freelance)"
+- If applying for "Content Marketing Specialist" → change title to "Content Marketing Specialist (Freelance)"
+- If applying for "Digital Marketing Coordinator" → change title to "Digital Marketing Coordinator (Freelance)"
+- If applying for "Brand Manager" → change title to "Brand Manager (Freelance)"
+- If applying for "Marketing Coordinator" → change title to "Marketing Coordinator (Freelance)"
+- If applying for "Social Media Coordinator" → change title to "Social Media Coordinator (Freelance)"
+- If applying for "Content Coordinator" → change title to "Content Coordinator (Freelance)"
+
+The job responsibilities (bullets) remain the same - just adjust the title to match the target role. Always keep "(Freelance)" in parentheses.
+
 YOUR TASK:
 
 1. ANALYZE the job description for:
+   - Exact job title being applied for
    - Seniority level (entry/coordinator vs mid-level specialist vs senior manager)
    - Top 10 keywords and required skills
    - Main responsibilities
    - Industry/company culture clues
 
 2. CREATE A TAILORED RESUME that:
+   - **ADJUSTS the freelance role titles** at VisaServe and Ahluwalia to match the target job title
    - Matches this EXACT format structure (preserve spacing and layout):
 
-MEHAK KHATTAR, C.M.(in progress)
+MEHAK KHATTAR, C.M.
 khattarmehak1@gmail.com | 416.893.1395 | Mehak Khattar | LinkedIn
 
 PROFESSIONAL PROFILE
 [Write 3-4 sentences emphasizing the experience most relevant to THIS role. Adjust tone based on seniority - more execution-focused for coordinator roles, more strategic for manager roles. Include specific platforms/skills mentioned in JD.]
 
 AREAS OF EXPERTISE
-[Format as 3 columns with 5 items each, separated by spaces. Prioritize skills from JD.]
-Column 1:                          Column 2:                          Column 3:
+[Format as 3 columns with 5 items each, separated by multiple spaces. Prioritize skills from JD.]
 Leadership                         SEO                                Performance analysis
 Strategy Development               Digital Media                      Metrics & Reporting
-[etc - 5 items per column]
+Project Management                 Content creation & production      Campaign planning
+Client Account Management          Social Media                       Budgeting & Forecasting
+Resource allocation                Strategy development               Brand oversight
 
 CAREER ACHIEVEMENTS
 Campaign Results:
@@ -212,15 +228,22 @@ PROFESSIONAL EXPERIENCE
 [Select 2-4 experiences from master content based on relevance to JD. Prioritize recent roles unless older ones are more relevant.]
 
 [Company Name]  [Dates]
-[Job Title]
+[Job Title - ADJUSTED FOR FREELANCE ROLES]
 - [Reorder bullets to put most JD-relevant first]
 - [Include quantifiable results when possible]
 - [Use keywords from JD naturally]
 
+Example for Social Media Manager role:
+VisaServe Immigration Law P.C.  01.2025 to present
+Social Media Manager (Freelance)
+- Grew reach by 228% and engagement by 4x through tailored educational reels and carousel series
+- Created a unified social content system across TikTok, Instagram, YouTube Shorts, and X, increasing organic inbound inquiries for legal services.
+- Designed weekly strategy decks with hooks, trends, and conversion copy for video and static content.
+
 [Repeat for 2-4 most relevant positions]
 
 EDUCATION, PROFESSIONAL TRAINING AND CERTIFICATIONS
-Chartered Marketer Designation - Canadian Marketing Association - In progress
+Chartered Marketer (C.M.) - Canadian Marketing Association - 2025
 Postgraduate Certificate, Film & Multiplatform Storytelling - Humber College, Dean's List - 2024
 Bachelor of Arts, Media & Communication - Amity University - 2021
 
@@ -230,29 +253,29 @@ TECHNICAL SKILLS
 3. CREATE A COVER LETTER that:
    - Uses this structure:
 
-MEHAK KHATTAR, C.M.(in progress)
+MEHAK KHATTAR, C.M.
 khattarmehak1@gmail.com | 416.893.1395 | Mehak Khattar | LinkedIn
 
-[Today's Date]
+${new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
 
-[Company Name]
-[If available, hiring manager name]
+${companyName || '[Company Name]'}
+${additionalInfo || ''}
 
-Re: Application for [Job Title]
+Re: Application for ${jobTitle || '[Job Title]'}
 
-Dear [Hiring Manager/Hiring Team],
+Dear Hiring Team,
 
-[Opening paragraph: Express genuine enthusiasm for THIS specific role at THIS company. Reference something specific about the company/role that excites you.]
+[Opening paragraph: Express genuine enthusiasm for THIS specific role at THIS company. Reference something specific about the company/role that excites you. Mention that you're a Chartered Marketer with hands-on experience in the exact role type they're hiring for.]
 
-[Body paragraph 1: Highlight your most relevant achievement that matches the top requirement in the JD. Use specific metrics.]
+[Body paragraph 1: Highlight your most relevant achievement that matches the top requirement in the JD. Use specific metrics. Reference your freelance work strategically - frame it as "recently managed" or "led" without overemphasizing the freelance nature.]
 
-[Body paragraph 2: Highlight your second most relevant strength/achievement. Connect it directly to a responsibility mentioned in the JD.]
+[Body paragraph 2: Highlight your second most relevant strength/achievement. Connect it directly to a responsibility mentioned in the JD. Show versatility across different company types and industries.]
 
-[Body paragraph 3: Show you understand the company's needs and explain how your unique blend of skills (mention 2-3 specific ones from JD) makes you ideal.]
+[Body paragraph 3: Show you understand the company's needs and explain how your unique blend of skills (mention 2-3 specific ones from JD) makes you ideal. Emphasize your C.M. designation and continuous learning mindset.]
 
 [Closing: Express enthusiasm, indicate availability, and include clear call to action.]
 
-Thank you for considering my application. I look forward to discussing how I can contribute to [Company Name]'s success.
+Thank you for considering my application. I look forward to discussing how I can contribute to ${companyName || '[Company Name]'}'s success.
 
 Sincerely,
 Mehak Khattar, Chartered Marketer (C.M.)
@@ -260,37 +283,30 @@ Mehak Khattar, Chartered Marketer (C.M.)
 IMPORTANT FORMATTING RULES:
 - Preserve exact spacing and line breaks as shown
 - Use bullet points (•) for lists
-- Keep the 3-column format for Areas of Expertise
+- Keep the 3-column format for Areas of Expertise with proper spacing
+- **CRITICAL: Adjust freelance role titles to match target job title**
 - Maintain professional but warm tone
 - For coordinator/associate roles: emphasize execution, support, and growth
 - For specialist roles: balance execution with strategy
 - For manager roles: emphasize leadership, strategy, and results
+- Always include "(Freelance)" after adjusted titles for VisaServe and Ahluwalia roles
 
 Return ONLY valid JSON in this format (no markdown, no extra text):
 {
-  "resume": "complete resume text with exact formatting",
+  "resume": "complete resume text with exact formatting and adjusted job titles",
   "coverLetter": "complete cover letter text with exact formatting"
 }`;
 
-      const apiKey = 'YOUR_API_KEY_HERE'; // We'll replace this with environment variable
-      
-      const response = await fetch('https://api.anthropic.com/v1/messages', {
+      const response = await fetch('/api/generate', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'x-api-key': apiKey,
-          'anthropic-version': '2023-06-01'
         },
-        body: JSON.stringify({
-          model: 'claude-sonnet-4-20250514',
-          max_tokens: 4096,
-          messages: [{ role: 'user', content: prompt }]
-        })
+        body: JSON.stringify({ prompt })
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error?.message || 'API request failed');
+        throw new Error('Failed to generate content');
       }
 
       const data = await response.json();
@@ -306,7 +322,7 @@ Return ONLY valid JSON in this format (no markdown, no extra text):
       }
 
     } catch (err) {
-      setError(`Error: ${err.message}. Please check your API key and try again.`);
+      setError(`Error: ${err.message}. Please try again.`);
       console.error(err);
     } finally {
       setLoading(false);
@@ -382,7 +398,7 @@ Return ONLY valid JSON in this format (no markdown, no extra text):
           React.createElement('button', {
             onClick: generateContent,
             disabled: loading,
-            className: "w-full bg-indigo-600 text-white py-4 px-6 rounded-lg hover:bg-indigo-700 disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center justify-center gap-2 font-medium text-lg"
+            className: "w-full bg-indigo-600 text-white py-4 px-6 rounded-lg hover:bg-indigo-700 disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center justify-center gap-2 font-medium text-lg transition-colors"
           },
             loading ? '⏳ Generating your tailored documents...' : '📄 Generate Resume & Cover Letter'
           )
@@ -396,11 +412,11 @@ Return ONLY valid JSON in this format (no markdown, no extra text):
             React.createElement('div', { className: "flex gap-2" },
               React.createElement('button', {
                 onClick: () => handleCopy(resume, 'resume'),
-                className: "px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700"
+                className: "px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700 transition-colors"
               }, copied.resume ? '✓ Copied!' : '📋 Copy'),
               React.createElement('button', {
                 onClick: () => handleDownload(resume, 'Mehak_Khattar_Resume.txt'),
-                className: "px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700"
+                className: "px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 transition-colors"
               }, '⬇️ Download')
             )
           ),
@@ -415,11 +431,11 @@ Return ONLY valid JSON in this format (no markdown, no extra text):
             React.createElement('div', { className: "flex gap-2" },
               React.createElement('button', {
                 onClick: () => handleCopy(coverLetter, 'cover'),
-                className: "px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700"
+                className: "px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700 transition-colors"
               }, copied.cover ? '✓ Copied!' : '📋 Copy'),
               React.createElement('button', {
                 onClick: () => handleDownload(coverLetter, 'Mehak_Khattar_Cover_Letter.txt'),
-                className: "px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700"
+                className: "px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 transition-colors"
               }, '⬇️ Download')
             )
           ),
@@ -433,6 +449,7 @@ Return ONLY valid JSON in this format (no markdown, no extra text):
         React.createElement('h3', { className: "text-lg font-bold text-gray-800 mb-3" }, 'How This Tool Works:'),
         React.createElement('ul', { className: "space-y-2 text-sm text-gray-700" },
           React.createElement('li', null, '✅ Analyzes job description for keywords, seniority level, and requirements'),
+          React.createElement('li', null, '✅ Automatically adjusts your freelance job titles to match the target role'),
           React.createElement('li', null, '✅ Selects your most relevant 2-3 work experiences based on JD match'),
           React.createElement('li', null, '✅ Reorders bullet points to highlight what matters most for THIS role'),
           React.createElement('li', null, '✅ Tailors your professional profile to the specific opportunity'),
