@@ -4,8 +4,8 @@ function ResumeGenerator() {
   const [jobDescription, setJobDescription] = useState('');
   const [additionalInfo, setAdditionalInfo] = useState('');
   const [loading, setLoading] = useState(false);
-  const [resume, setResume] = useState('');
-  const [coverLetter, setCoverLetter] = useState('');
+  const [resumeText, setResumeText] = useState('');
+  const [coverLetterText, setCoverLetterText] = useState('');
   const [copied, setCopied] = useState({ resume: false, cover: false });
   const [error, setError] = useState('');
   const [missingInfo, setMissingInfo] = useState([]);
@@ -135,6 +135,315 @@ function ResumeGenerator() {
     return null;
   };
 
+  const convertToHTML = (resumeText, coverLetterText) => {
+    // Parse resume sections
+    const sections = {
+      name: '',
+      contact: '',
+      profile: '',
+      expertise: [],
+      achievements: { campaign: [], platform: [], production: [] },
+      experiences: [],
+      education: [],
+      skills: ''
+    };
+
+    const lines = resumeText.split('\n');
+    let currentSection = '';
+    let currentSubsection = '';
+    let currentExp = null;
+
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i].trim();
+      
+      if (!line) continue;
+
+      if (line.includes('KHATTAR') && i < 3) {
+        sections.name = line;
+      } else if (line.includes('@') && line.includes('|')) {
+        sections.contact = line;
+      } else if (line === 'PROFESSIONAL PROFILE') {
+        currentSection = 'profile';
+      } else if (line === 'AREAS OF EXPERTISE') {
+        currentSection = 'expertise';
+      } else if (line === 'CAREER ACHIEVEMENTS') {
+        currentSection = 'achievements';
+      } else if (line === 'PROFESSIONAL EXPERIENCE') {
+        currentSection = 'experience';
+      } else if (line.includes('EDUCATION')) {
+        currentSection = 'education';
+      } else if (line === 'TECHNICAL SKILLS') {
+        currentSection = 'skills';
+      } else if (currentSection === 'profile' && !line.match(/^[A-Z\s]+$/)) {
+        sections.profile += line + ' ';
+      } else if (currentSection === 'expertise' && !line.match(/^[A-Z\s]+$/)) {
+        sections.expertise.push(line);
+      } else if (currentSection === 'achievements') {
+        if (line.includes('Campaign Results:')) {
+          currentSubsection = 'campaign';
+        } else if (line.includes('Platform Success:')) {
+          currentSubsection = 'platform';
+        } else if (line.includes('Production and Innovation:')) {
+          currentSubsection = 'production';
+        } else if (line.startsWith('•')) {
+          sections.achievements[currentSubsection].push(line.substring(1).trim());
+        }
+      } else if (currentSection === 'experience') {
+        if (line.match(/\d{2}\.\d{4}/) && !line.startsWith('•')) {
+          if (currentExp) sections.experiences.push(currentExp);
+          const parts = line.split(/\s{2,}/);
+          currentExp = { 
+            company: parts[0] || line.split(/\d{2}\.\d{4}/)[0].trim(),
+            dates: line.match(/\d{2}\.\d{4}.*$/)?.[0] || '',
+            title: '',
+            bullets: []
+          };
+        } else if (currentExp && !currentExp.title && !line.startsWith('•')) {
+          currentExp.title = line;
+        } else if (currentExp && line.startsWith('•')) {
+          currentExp.bullets.push(line.substring(1).trim());
+        }
+      } else if (currentSection === 'education' && !line.match(/^[A-Z\s,]+$/)) {
+        sections.education.push(line);
+      } else if (currentSection === 'skills') {
+        sections.skills += line + ' ';
+      }
+    }
+    
+    if (currentExp) sections.experiences.push(currentExp);
+
+    // Generate Resume HTML
+    const resumeHTML = `<!DOCTYPE html>
+<html xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">
+<head>
+    <meta charset="UTF-8">
+    <meta name="ProgId" content="Word.Document">
+    <meta name="Generator" content="Microsoft Word 15">
+    <meta name="Originator" content="Microsoft Word 15">
+    <!--[if gte mso 9]>
+    <xml>
+        <w:WordDocument>
+            <w:View>Print</w:View>
+            <w:Zoom>100</w:Zoom>
+        </w:WordDocument>
+    </xml>
+    <![endif]-->
+    <style>
+        body {
+            font-family: Garamond, serif;
+            font-size: 11pt;
+            margin: 1in 1in 1in 1in;
+            line-height: 1.15;
+        }
+        .name {
+            font-size: 24pt;
+            font-weight: bold;
+            margin-bottom: 6pt;
+        }
+        .contact {
+            font-size: 11pt;
+            margin-bottom: 12pt;
+        }
+        .heading {
+            font-size: 11pt;
+            font-weight: bold;
+            margin-top: 12pt;
+            margin-bottom: 6pt;
+            text-transform: uppercase;
+        }
+        .expertise-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 12pt;
+        }
+        .expertise-table td {
+            width: 33.33%;
+            padding: 3pt 6pt;
+            border-left: 1pt solid black;
+            border-right: 1pt solid black;
+            vertical-align: top;
+            font-size: 11pt;
+        }
+        .expertise-table td:first-child {
+            border-left: none;
+        }
+        .expertise-table td:last-child {
+            border-right: none;
+        }
+        .subheading {
+            font-weight: bold;
+            margin-top: 6pt;
+            margin-bottom: 3pt;
+        }
+        .job-header {
+            margin-top: 9pt;
+            font-weight: bold;
+        }
+        .job-company {
+            display: inline-block;
+            width: 60%;
+        }
+        .job-dates {
+            display: inline-block;
+            width: 38%;
+            text-align: right;
+        }
+        .job-title {
+            font-weight: bold;
+            margin-top: 0;
+            margin-bottom: 3pt;
+        }
+        ul {
+            margin: 3pt 0;
+            padding-left: 0.3in;
+        }
+        li {
+            margin-bottom: 3pt;
+        }
+        .education-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 6pt;
+        }
+        .education-table td {
+            padding: 3pt 6pt;
+            border: 1pt solid black;
+            font-size: 11pt;
+        }
+        .education-table td:nth-child(2) {
+            font-weight: bold;
+        }
+        p {
+            margin: 0 0 6pt 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="name">${sections.name}</div>
+    <div class="contact">${sections.contact}</div>
+    
+    <div class="heading">Professional Profile</div>
+    <p>${sections.profile.trim()}</p>
+    
+    <div class="heading">Areas of Expertise</div>
+    <table class="expertise-table">
+        ${generateExpertiseTable(sections.expertise)}
+    </table>
+    
+    <div class="heading">Career Achievements</div>
+    <div class="subheading">Campaign Results:</div>
+    <ul>
+        ${sections.achievements.campaign.map(a => `<li>${a}</li>`).join('')}
+    </ul>
+    <div class="subheading">Platform Success:</div>
+    <ul>
+        ${sections.achievements.platform.map(a => `<li>${a}</li>`).join('')}
+    </ul>
+    <div class="subheading">Production and Innovation:</div>
+    <ul>
+        ${sections.achievements.production.map(a => `<li>${a}</li>`).join('')}
+    </ul>
+    
+    <div class="heading">Professional Experience</div>
+    ${sections.experiences.map(exp => `
+        <div class="job-header">
+            <span class="job-company">${exp.company}</span>
+            <span class="job-dates">${exp.dates}</span>
+        </div>
+        <div class="job-title">${exp.title}</div>
+        <ul>
+            ${exp.bullets.map(b => `<li>${b}</li>`).join('')}
+        </ul>
+    `).join('')}
+    
+    <div class="heading">Education, Professional Training and Certifications</div>
+    <table class="education-table">
+        ${sections.education.map(edu => {
+            const parts = edu.split(' - ');
+            return `<tr>
+                <td style="width:40%">${parts[0] || ''}</td>
+                <td style="width:40%">${parts[1] || ''}</td>
+                <td style="width:20%">${parts[2] || ''}</td>
+            </tr>`;
+        }).join('')}
+    </table>
+    
+    <div class="heading">Technical Skills</div>
+    <p>${sections.skills.trim()}</p>
+</body>
+</html>`;
+
+    // Generate Cover Letter HTML
+    const coverLetterHTML = `<!DOCTYPE html>
+<html xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">
+<head>
+    <meta charset="UTF-8">
+    <meta name="ProgId" content="Word.Document">
+    <meta name="Generator" content="Microsoft Word 15">
+    <meta name="Originator" content="Microsoft Word 15">
+    <style>
+        body {
+            font-family: Garamond, serif;
+            font-size: 11pt;
+            margin: 1in 1in 1in 1in;
+            line-height: 1.5;
+        }
+        .name {
+            font-size: 24pt;
+            font-weight: bold;
+            margin-bottom: 6pt;
+        }
+        .contact {
+            font-size: 11pt;
+            margin-bottom: 18pt;
+        }
+        p {
+            margin: 9pt 0;
+            text-align: justify;
+        }
+    </style>
+</head>
+<body>
+    ${coverLetterText.split('\n\n').map(para => `<p>${para.trim()}</p>`).join('')}
+</body>
+</html>`;
+
+    return { resumeHTML, coverLetterHTML };
+  };
+
+  const generateExpertiseTable = (expertiseList) => {
+    // Split into 3 columns
+    const col1 = [], col2 = [], col3 = [];
+    expertiseList.forEach((item, idx) => {
+      if (idx % 3 === 0) col1.push(item);
+      else if (idx % 3 === 1) col2.push(item);
+      else col3.push(item);
+    });
+
+    const maxRows = Math.max(col1.length, col2.length, col3.length);
+    let rows = '';
+    
+    for (let i = 0; i < maxRows; i++) {
+      rows += `<tr>
+        <td>${col1[i] || '&nbsp;'}</td>
+        <td>${col2[i] || '&nbsp;'}</td>
+        <td>${col3[i] || '&nbsp;'}</td>
+      </tr>`;
+    }
+    
+    return rows;
+  };
+
+  const downloadHTML = (html, filename) => {
+    const blob = new Blob([html], { type: 'text/html' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   const generateContent = async () => {
     if (!jobDescription.trim()) {
       setError('Please paste a job description');
@@ -182,8 +491,6 @@ Examples:
 - If applying for "Digital Marketing Coordinator" → change title to "Digital Marketing Coordinator (Freelance)"
 - If applying for "Brand Manager" → change title to "Brand Manager (Freelance)"
 - If applying for "Marketing Coordinator" → change title to "Marketing Coordinator (Freelance)"
-- If applying for "Social Media Coordinator" → change title to "Social Media Coordinator (Freelance)"
-- If applying for "Content Coordinator" → change title to "Content Coordinator (Freelance)"
 
 The job responsibilities (bullets) remain the same - just adjust the title to match the target role. Always keep "(Freelance)" in parentheses.
 
@@ -194,53 +501,43 @@ YOUR TASK:
    - Seniority level (entry/coordinator vs mid-level specialist vs senior manager)
    - Top 10 keywords and required skills
    - Main responsibilities
-   - Industry/company culture clues
 
-2. CREATE A TAILORED RESUME that:
-   - **ADJUSTS the freelance role titles** at VisaServe and Ahluwalia to match the target job title
-   - Matches this EXACT format structure (preserve spacing and layout):
+2. CREATE A TAILORED RESUME:
 
 MEHAK KHATTAR, C.M.
 khattarmehak1@gmail.com | 416.893.1395 | Mehak Khattar | LinkedIn
 
 PROFESSIONAL PROFILE
-[Write 3-4 sentences emphasizing the experience most relevant to THIS role. Adjust tone based on seniority - more execution-focused for coordinator roles, more strategic for manager roles. Include specific platforms/skills mentioned in JD.]
+[Write 3-4 sentences emphasizing relevant experience for THIS role]
 
 AREAS OF EXPERTISE
-[Format as 3 columns with 5 items each, separated by multiple spaces. Prioritize skills from JD.]
-Leadership                         SEO                                Performance analysis
-Strategy Development               Digital Media                      Metrics & Reporting
-Project Management                 Content creation & production      Campaign planning
-Client Account Management          Social Media                       Budgeting & Forecasting
-Resource allocation                Strategy development               Brand oversight
+[List 15 items total, one per line - these will be arranged in 3 columns. Prioritize skills from JD]
+Leadership
+Strategy Development
+Project Management
+[... continue for 15 total items]
 
 CAREER ACHIEVEMENTS
 Campaign Results:
-- [Select 2 most relevant achievements from the master content]
+- [Achievement 1]
+- [Achievement 2]
 
 Platform Success:
-- [Select 2 most relevant achievements]
+- [Achievement 1]
+- [Achievement 2]
 
 Production and Innovation:
-- [Select 2 most relevant achievements]
+- [Achievement 1]
+- [Achievement 2]
 
 PROFESSIONAL EXPERIENCE
-[Select 2-4 experiences from master content based on relevance to JD. Prioritize recent roles unless older ones are more relevant.]
+[Select 2-4 most relevant experiences]
 
 [Company Name]  [Dates]
 [Job Title - ADJUSTED FOR FREELANCE ROLES]
-- [Reorder bullets to put most JD-relevant first]
-- [Include quantifiable results when possible]
-- [Use keywords from JD naturally]
-
-Example for Social Media Manager role:
-VisaServe Immigration Law P.C.  01.2025 to present
-Social Media Manager (Freelance)
-- Grew reach by 228% and engagement by 4x through tailored educational reels and carousel series
-- Created a unified social content system across TikTok, Instagram, YouTube Shorts, and X, increasing organic inbound inquiries for legal services.
-- Designed weekly strategy decks with hooks, trends, and conversion copy for video and static content.
-
-[Repeat for 2-4 most relevant positions]
+- [Bullet 1]
+- [Bullet 2]
+- [Bullet 3]
 
 EDUCATION, PROFESSIONAL TRAINING AND CERTIFICATIONS
 Chartered Marketer (C.M.) - Canadian Marketing Association - 2025
@@ -248,10 +545,9 @@ Postgraduate Certificate, Film & Multiplatform Storytelling - Humber College, De
 Bachelor of Arts, Media & Communication - Amity University - 2021
 
 TECHNICAL SKILLS
-[List all skills from master content, but emphasize tools mentioned in JD]
+[All tools, emphasizing those in JD]
 
-3. CREATE A COVER LETTER that:
-   - Uses this structure:
+3. CREATE A COVER LETTER:
 
 MEHAK KHATTAR, C.M.
 khattarmehak1@gmail.com | 416.893.1395 | Mehak Khattar | LinkedIn
@@ -259,55 +555,29 @@ khattarmehak1@gmail.com | 416.893.1395 | Mehak Khattar | LinkedIn
 ${new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
 
 ${companyName || '[Company Name]'}
-${additionalInfo || ''}
 
 Re: Application for ${jobTitle || '[Job Title]'}
 
 Dear Hiring Team,
 
-[Opening paragraph: Express genuine enthusiasm for THIS specific role at THIS company. Reference something specific about the company/role that excites you. Mention that you're a Chartered Marketer with hands-on experience in the exact role type they're hiring for.]
-
-[Body paragraph 1: Highlight your most relevant achievement that matches the top requirement in the JD. Use specific metrics. Reference your freelance work strategically - frame it as "recently managed" or "led" without overemphasizing the freelance nature.]
-
-[Body paragraph 2: Highlight your second most relevant strength/achievement. Connect it directly to a responsibility mentioned in the JD. Show versatility across different company types and industries.]
-
-[Body paragraph 3: Show you understand the company's needs and explain how your unique blend of skills (mention 2-3 specific ones from JD) makes you ideal. Emphasize your C.M. designation and continuous learning mindset.]
-
-[Closing: Express enthusiasm, indicate availability, and include clear call to action.]
-
-Thank you for considering my application. I look forward to discussing how I can contribute to ${companyName || '[Company Name]'}'s success.
+[4-5 paragraphs as structured before]
 
 Sincerely,
 Mehak Khattar, Chartered Marketer (C.M.)
 
-IMPORTANT FORMATTING RULES:
-- Preserve exact spacing and line breaks as shown
-- Use bullet points (•) for lists
-- Keep the 3-column format for Areas of Expertise with proper spacing
-- **CRITICAL: Adjust freelance role titles to match target job title**
-- Maintain professional but warm tone
-- For coordinator/associate roles: emphasize execution, support, and growth
-- For specialist roles: balance execution with strategy
-- For manager roles: emphasize leadership, strategy, and results
-- Always include "(Freelance)" after adjusted titles for VisaServe and Ahluwalia roles
-
-Return ONLY valid JSON in this format (no markdown, no extra text):
+Return ONLY valid JSON:
 {
-  "resume": "complete resume text with exact formatting and adjusted job titles",
-  "coverLetter": "complete cover letter text with exact formatting"
+  "resume": "complete resume text",
+  "coverLetter": "complete cover letter text"
 }`;
 
       const response = await fetch('/api/generate', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ prompt })
       });
 
-      if (!response.ok) {
-        throw new Error('Failed to generate content');
-      }
+      if (!response.ok) throw new Error('Failed to generate content');
 
       const data = await response.json();
       const content = data.content[0].text;
@@ -315,8 +585,8 @@ Return ONLY valid JSON in this format (no markdown, no extra text):
       const jsonMatch = content.match(/\{[\s\S]*\}/);
       if (jsonMatch) {
         const result = JSON.parse(jsonMatch[0]);
-        setResume(result.resume);
-        setCoverLetter(result.coverLetter);
+        setResumeText(result.resume);
+        setCoverLetterText(result.coverLetter);
       } else {
         throw new Error('Could not parse AI response');
       }
@@ -335,14 +605,10 @@ Return ONLY valid JSON in this format (no markdown, no extra text):
     setTimeout(() => setCopied({ ...copied, [type]: false }), 2000);
   };
 
-  const handleDownload = (text, filename) => {
-    const blob = new Blob([text], { type: 'text/plain' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = filename;
-    a.click();
-    URL.revokeObjectURL(url);
+  const handleDownloadHTML = () => {
+    const { resumeHTML, coverLetterHTML } = convertToHTML(resumeText, coverLetterText);
+    downloadHTML(resumeHTML, 'Mehak_Khattar_Resume.html');
+    downloadHTML(coverLetterHTML, 'Mehak_Khattar_Cover_Letter.html');
   };
 
   return React.createElement('div', { className: "min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50 p-4" },
@@ -354,33 +620,33 @@ Return ONLY valid JSON in this format (no markdown, no extra text):
         ),
         
         React.createElement('p', { className: "text-gray-600 mb-6" },
-          'Paste any job description and get a perfectly tailored resume + cover letter in seconds. Optimized for speed - applying to jobs has never been faster!'
+          'Paste job description → Get tailored resume + cover letter as HTML → Open in Word → Save as DOCX. Perfect Garamond formatting!'
         ),
 
         React.createElement('div', { className: "bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6" },
           React.createElement('p', { className: "text-sm text-gray-800" },
-            React.createElement('strong', null, 'Pro Tip from Corporate Recruiters: '),
-            'Speed matters! Most ATS systems sort by application order, not keywords. Apply fast with pre-optimized resumes. This tool helps you maintain quality while maximizing speed.'
+            React.createElement('strong', null, 'Pro Tip: '),
+            'Speed matters! ATS systems sort by application order. Apply fast with pre-optimized resumes.'
           )
         ),
 
         React.createElement('div', { className: "space-y-4" },
           React.createElement('div', null,
             React.createElement('label', { className: "block text-sm font-medium text-gray-700 mb-2" },
-              'Job Description (paste the entire JD)'
+              'Job Description'
             ),
             React.createElement('textarea', {
               value: jobDescription,
               onChange: (e) => setJobDescription(e.target.value),
-              className: "w-full h-64 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent",
+              className: "w-full h-64 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500",
               placeholder: "Paste the job description here..."
             })
           ),
 
           showInfoPrompt && React.createElement('div', { className: "bg-blue-50 border-l-4 border-blue-400 p-4" },
             React.createElement('p', { className: "text-sm text-gray-800 mb-2" },
-              React.createElement('strong', null, 'Missing Information: '),
-              `I couldn't detect the ${missingInfo.join(' and ')} from the job description.`
+              React.createElement('strong', null, 'Missing: '),
+              missingInfo.join(' and ')
             ),
             React.createElement('input', {
               type: "text",
@@ -398,68 +664,53 @@ Return ONLY valid JSON in this format (no markdown, no extra text):
           React.createElement('button', {
             onClick: generateContent,
             disabled: loading,
-            className: "w-full bg-indigo-600 text-white py-4 px-6 rounded-lg hover:bg-indigo-700 disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center justify-center gap-2 font-medium text-lg transition-colors"
+            className: "w-full bg-indigo-600 text-white py-4 px-6 rounded-lg hover:bg-indigo-700 disabled:bg-gray-400 font-medium text-lg"
           },
-            loading ? '⏳ Generating your tailored documents...' : '📄 Generate Resume & Cover Letter'
+            loading ? '⏳ Generating...' : '📄 Generate Documents'
           )
         )
       ),
 
-      (resume || coverLetter) && React.createElement('div', { className: "grid md:grid-cols-2 gap-6" },
-        resume && React.createElement('div', { className: "bg-white rounded-lg shadow-xl p-6" },
-          React.createElement('div', { className: "flex items-center justify-between mb-4" },
-            React.createElement('h2', { className: "text-2xl font-bold text-gray-800" }, 'Resume'),
-            React.createElement('div', { className: "flex gap-2" },
-              React.createElement('button', {
-                onClick: () => handleCopy(resume, 'resume'),
-                className: "px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700 transition-colors"
-              }, copied.resume ? '✓ Copied!' : '📋 Copy'),
-              React.createElement('button', {
-                onClick: () => handleDownload(resume, 'Mehak_Khattar_Resume.txt'),
-                className: "px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 transition-colors"
-              }, '⬇️ Download')
-            )
+      (resumeText || coverLetterText) && React.createElement('div', null,
+        React.createElement('div', { className: "bg-white rounded-lg shadow-xl p-6 mb-6" },
+          React.createElement('h2', { className: "text-2xl font-bold text-gray-800 mb-4" }, 'Generated Documents'),
+          
+          React.createElement('div', { className: "flex gap-4 mb-6" },
+            React.createElement('button', {
+              onClick: handleDownloadHTML,
+              className: "flex-1 bg-indigo-600 text-white py-3 px-6 rounded-lg hover:bg-indigo-700 font-medium"
+            }, '⬇️ Download Both as HTML'),
+            React.createElement('button', {
+              onClick: () => handleCopy(resumeText, 'resume'),
+              className: "px-6 py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-700"
+            }, copied.resume ? '✓ Copied Resume!' : '📋 Copy Resume'),
+            React.createElement('button', {
+              onClick: () => handleCopy(coverLetterText, 'cover'),
+              className: "px-6 py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-700"
+            }, copied.cover ? '✓ Copied Letter!' : '📋 Copy Letter')
           ),
-          React.createElement('div', { className: "bg-gray-50 rounded p-4 max-h-[600px] overflow-y-auto" },
-            React.createElement('pre', { className: "whitespace-pre-wrap text-sm font-mono" }, resume)
+
+          React.createElement('div', { className: "bg-blue-50 border-l-4 border-blue-500 p-4 mb-4" },
+            React.createElement('p', { className: "font-bold text-blue-900 mb-2" }, '📝 How to use HTML files:'),
+            React.createElement('ol', { className: "list-decimal ml-5 text-blue-800 space-y-1" },
+              React.createElement('li', null, 'Click "Download Both as HTML"'),
+              React.createElement('li', null, 'Right-click each file → Open with Microsoft Word'),
+              React.createElement('li', null, 'In Word: File → Save As → Choose ".docx"'),
+              React.createElement('li', null, 'Perfect Garamond formatting preserved!
+                                     React.createElement('div', { className: "grid md:grid-cols-2 gap-4" },
+        React.createElement('div', null,
+          React.createElement('h3', { className: "font-bold text-gray-800 mb-2" }, 'Resume Preview:'),
+          React.createElement('div', { className: "bg-gray-50 rounded p-4 max-h-96 overflow-y-auto" },
+            React.createElement('pre', { className: "whitespace-pre-wrap text-xs font-mono" }, resumeText)
           )
         ),
-
-        coverLetter && React.createElement('div', { className: "bg-white rounded-lg shadow-xl p-6" },
-          React.createElement('div', { className: "flex items-center justify-between mb-4" },
-            React.createElement('h2', { className: "text-2xl font-bold text-gray-800" }, 'Cover Letter'),
-            React.createElement('div', { className: "flex gap-2" },
-              React.createElement('button', {
-                onClick: () => handleCopy(coverLetter, 'cover'),
-                className: "px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700 transition-colors"
-              }, copied.cover ? '✓ Copied!' : '📋 Copy'),
-              React.createElement('button', {
-                onClick: () => handleDownload(coverLetter, 'Mehak_Khattar_Cover_Letter.txt'),
-                className: "px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 transition-colors"
-              }, '⬇️ Download')
-            )
-          ),
-          React.createElement('div', { className: "bg-gray-50 rounded p-4 max-h-[600px] overflow-y-auto" },
-            React.createElement('pre', { className: "whitespace-pre-wrap text-sm font-mono" }, coverLetter)
+        React.createElement('div', null,
+          React.createElement('h3', { className: "font-bold text-gray-800 mb-2" }, 'Cover Letter Preview:'),
+          React.createElement('div', { className: "bg-gray-50 rounded p-4 max-h-96 overflow-y-auto" },
+            React.createElement('pre', { className: "whitespace-pre-wrap text-xs font-mono" }, coverLetterText)
           )
-        )
-      ),
-
-      React.createElement('div', { className: "bg-white rounded-lg shadow-xl p-6 mt-6" },
-        React.createElement('h3', { className: "text-lg font-bold text-gray-800 mb-3" }, 'How This Tool Works:'),
-        React.createElement('ul', { className: "space-y-2 text-sm text-gray-700" },
-          React.createElement('li', null, '✅ Analyzes job description for keywords, seniority level, and requirements'),
-          React.createElement('li', null, '✅ Automatically adjusts your freelance job titles to match the target role'),
-          React.createElement('li', null, '✅ Selects your most relevant 2-3 work experiences based on JD match'),
-          React.createElement('li', null, '✅ Reorders bullet points to highlight what matters most for THIS role'),
-          React.createElement('li', null, '✅ Tailors your professional profile to the specific opportunity'),
-          React.createElement('li', null, '✅ Generates a personalized cover letter addressing the company and role'),
-          React.createElement('li', null, '✅ Maintains your exact formatting and structure'),
-          React.createElement('li', null, '✅ Ready to apply in under 60 seconds!')
         )
       )
     )
-  );
-}
-
-ReactDOM.render(React.createElement(ResumeGenerator), document.getElementById('root'));
+  )
+)
