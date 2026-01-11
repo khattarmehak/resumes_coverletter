@@ -485,12 +485,18 @@ if (!response.ok) {
 }
 
 const data = await response.json();
-console.log('API Response:', data); // Debug log
+console.log('Full API Response:', JSON.stringify(data, null, 2)); // Better debug log
+
+// Check for error response from Anthropic API
+if (data.error) {
+  console.error('Anthropic API Error:', data.error);
+  throw new Error(`API Error: ${data.error.message || JSON.stringify(data.error)}`);
+}
 
 // Check if response has the expected structure
-if (!data.content || !data.content[0] || !data.content[0].text) {
+if (!data.content || !Array.isArray(data.content) || !data.content[0] || !data.content[0].text) {
   console.error('Unexpected API response structure:', data);
-  throw new Error('Invalid API response format');
+  throw new Error(`Invalid API response format. Got: ${JSON.stringify(data)}`);
 }
 
 const content = data.content[0].text;
