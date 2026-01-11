@@ -473,25 +473,36 @@ Return only JSON:
   "coverLetter": "full text"
 }`;
 
-              const response = await fetch('/api/generate', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ prompt })
-              });
+             const response = await fetch('/api/generate', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ prompt })
+});
 
-              if (!response.ok) throw new Error('Generation failed');
+if (!response.ok) {
+  const errorData = await response.json();
+  throw new Error(errorData.error?.message || 'API request failed');
+}
 
-              const data = await response.json();
-              const content = data.content[0].text;
-              
-              const jsonMatch = content.match(/\{[\s\S]*\}/);
-              if (jsonMatch) {
-                const result = JSON.parse(jsonMatch[0]);
-                setResumeText(result.resume);
-                setCoverLetterText(result.coverLetter);
-              } else {
-                throw new Error('Could not parse response');
-              }
+const data = await response.json();
+console.log('API Response:', data); // Debug log
+
+// Check if response has the expected structure
+if (!data.content || !data.content[0] || !data.content[0].text) {
+  console.error('Unexpected API response structure:', data);
+  throw new Error('Invalid API response format');
+}
+
+const content = data.content[0].text;
+
+const jsonMatch = content.match(/\{[\s\S]*\}/);
+if (jsonMatch) {
+  const result = JSON.parse(jsonMatch[0]);
+  setResumeText(result.resume);
+  setCoverLetterText(result.coverLetter);
+} else {
+  throw new Error('Could not parse AI response - no JSON found');
+}
 
             } catch (err) {
               setError(`Error: ${err.message}`);
