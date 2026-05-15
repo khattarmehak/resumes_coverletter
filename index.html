@@ -1,654 +1,1243 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Resume Generator - Mehak Khattar</title>
-    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    <script src="https://cdn.tailwindcss.com"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mehak — Job Application System</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,400;0,500;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0c0c0e;
+  --surface:#141416;
+  --surface2:#1c1c20;
+  --border:#2a2a30;
+  --border2:#3a3a42;
+  --text:#f0f0f2;
+  --text2:#9090a0;
+  --text3:#606070;
+  --accent:#7b68ee;
+  --accent2:#9d8ff0;
+  --green:#4ade80;
+  --amber:#fbbf24;
+  --red:#f87171;
+  --teal:#2dd4bf;
+}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;min-height:100vh;line-height:1.6}
+button{cursor:pointer;font-family:'DM Sans',sans-serif}
+textarea,input,select{font-family:'DM Sans',sans-serif}
+
+/* NAV */
+.nav{display:flex;align-items:center;justify-content:space-between;padding:16px 32px;border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--bg);z-index:100}
+.nav-logo{font-family:'DM Mono',monospace;font-size:13px;color:var(--text2);letter-spacing:0.05em}
+.nav-logo span{color:var(--accent)}
+.nav-tabs{display:flex;gap:4px}
+.nav-tab{background:none;border:none;padding:6px 14px;border-radius:6px;font-size:13px;color:var(--text2);transition:all 0.15s}
+.nav-tab:hover{background:var(--surface2);color:var(--text)}
+.nav-tab.active{background:var(--surface2);color:var(--text)}
+.nav-right{display:flex;align-items:center;gap:10px}
+.auth-btn{padding:6px 14px;border-radius:6px;font-size:12px;border:1px solid var(--border2);background:none;color:var(--text2);transition:all 0.15s}
+.auth-btn:hover{border-color:var(--accent);color:var(--accent)}
+.auth-status{font-size:11px;font-family:'DM Mono',monospace;color:var(--green)}
+.auth-status.disconnected{color:var(--text3)}
+
+/* LAYOUT */
+.page{display:none;padding:32px}
+.page.active{display:block}
+.max-w{max-width:900px;margin:0 auto}
+
+/* GENERATE PAGE */
+.gen-layout{display:grid;grid-template-columns:1fr 1fr;gap:24px;align-items:start}
+.gen-left{}
+.gen-right{position:sticky;top:80px}
+
+.section-label{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:0.12em;color:var(--text3);text-transform:uppercase;margin-bottom:10px}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px}
+.card+.card{margin-top:16px}
+
+textarea{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:14px;color:var(--text);font-size:13px;resize:vertical;line-height:1.6;outline:none;transition:border 0.15s}
+textarea:focus{border-color:var(--border2)}
+textarea::placeholder{color:var(--text3)}
+
+.btn{display:inline-flex;align-items:center;gap:6px;padding:10px 18px;border-radius:8px;font-size:13px;font-weight:500;border:none;transition:all 0.15s;cursor:pointer}
+.btn-primary{background:var(--accent);color:#fff}
+.btn-primary:hover{background:var(--accent2)}
+.btn-primary:disabled{background:var(--border2);color:var(--text3);cursor:not-allowed}
+.btn-ghost{background:none;border:1px solid var(--border2);color:var(--text2)}
+.btn-ghost:hover{border-color:var(--border);color:var(--text);background:var(--surface2)}
+.btn-ghost:disabled{opacity:0.4;cursor:not-allowed}
+.btn-green{background:rgba(74,222,128,0.12);border:1px solid rgba(74,222,128,0.25);color:var(--green)}
+.btn-green:hover{background:rgba(74,222,128,0.2)}
+.btn-teal{background:rgba(45,212,191,0.12);border:1px solid rgba(45,212,191,0.25);color:var(--teal)}
+.btn-teal:hover{background:rgba(45,212,191,0.2)}
+.btn-full{width:100%;justify-content:center}
+.btn-sm{padding:6px 12px;font-size:12px}
+
+/* STEP INDICATOR */
+.steps{display:flex;gap:0;margin-bottom:20px}
+.step{flex:1;padding:8px 12px;font-size:11px;font-family:'DM Mono',monospace;color:var(--text3);border-bottom:2px solid var(--border);transition:all 0.2s}
+.step.active{color:var(--accent);border-bottom-color:var(--accent)}
+.step.done{color:var(--green);border-bottom-color:var(--green)}
+
+/* HYPOTHESIS CARD */
+.hypothesis-card{background:var(--surface2);border:1px solid var(--border2);border-radius:10px;padding:18px;margin-bottom:16px}
+.hypothesis-card h3{font-size:12px;font-family:'DM Mono',monospace;color:var(--accent);margin-bottom:10px;letter-spacing:0.08em}
+.hypothesis-card p{font-size:13px;color:var(--text);line-height:1.7}
+
+.story-list{list-style:none;margin-top:8px}
+.story-list li{padding:6px 0;border-bottom:1px solid var(--border);font-size:13px;color:var(--text2);display:flex;gap:8px}
+.story-list li:last-child{border-bottom:none}
+.story-list li::before{content:'→';color:var(--accent);flex-shrink:0}
+.story-list li.cut::before{content:'✕';color:var(--text3)}
+.story-list li.cut{color:var(--text3);text-decoration:line-through;text-decoration-color:var(--border2)}
+
+.comments-area{margin-top:12px}
+.comments-area textarea{min-height:70px}
+
+/* RESULT */
+.result-tabs{display:flex;gap:4px;margin-bottom:16px}
+.result-tab{padding:7px 14px;border-radius:6px;font-size:12px;border:1px solid var(--border);background:none;color:var(--text2);cursor:pointer}
+.result-tab.active{background:var(--surface2);color:var(--text);border-color:var(--border2)}
+
+.result-content{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:20px;font-size:13px;line-height:1.8;white-space:pre-wrap;font-family:'DM Mono',monospace;color:var(--text);max-height:500px;overflow-y:auto}
+
+.action-row{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+
+/* STATUS BADGE */
+.badge{display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;font-family:'DM Mono',monospace}
+.badge-green{background:rgba(74,222,128,0.1);color:var(--green);border:1px solid rgba(74,222,128,0.2)}
+.badge-amber{background:rgba(251,191,36,0.1);color:var(--amber);border:1px solid rgba(251,191,36,0.2)}
+.badge-red{background:rgba(248,113,113,0.1);color:var(--red);border:1px solid rgba(248,113,113,0.2)}
+.badge-gray{background:rgba(144,144,160,0.1);color:var(--text2);border:1px solid var(--border)}
+.badge-accent{background:rgba(123,104,238,0.12);color:var(--accent2);border:1px solid rgba(123,104,238,0.25)}
+
+/* TRACKER */
+.tracker-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
+.tracker-table{width:100%;border-collapse:collapse}
+.tracker-table th{text-align:left;padding:10px 12px;font-size:11px;font-family:'DM Mono',monospace;color:var(--text3);letter-spacing:0.08em;border-bottom:1px solid var(--border);font-weight:400}
+.tracker-table td{padding:12px;border-bottom:1px solid var(--border);font-size:13px;vertical-align:top}
+.tracker-table tr:hover td{background:var(--surface2)}
+.tracker-table td a{color:var(--accent);text-decoration:none;font-size:12px}
+.tracker-table td a:hover{color:var(--accent2);text-decoration:underline}
+.status-select{background:transparent;border:1px solid var(--border);color:var(--text2);border-radius:4px;padding:2px 6px;font-size:11px;font-family:'DM Mono',monospace;cursor:pointer;outline:none}
+.status-select:focus{border-color:var(--border2)}
+.empty-state{text-align:center;padding:60px 20px;color:var(--text3);font-family:'DM Mono',monospace;font-size:12px}
+
+/* OUTREACH */
+.outreach-layout{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.outreach-type-tabs{display:flex;gap:6px;margin-bottom:16px}
+.outreach-tab{flex:1;text-align:center;padding:8px;border-radius:8px;font-size:12px;border:1px solid var(--border);background:none;color:var(--text2);cursor:pointer;transition:all 0.15s}
+.outreach-tab.active{border-color:var(--accent);color:var(--accent);background:rgba(123,104,238,0.08)}
+
+/* Q&A DIALOG */
+.qa-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:200;align-items:center;justify-content:center}
+.qa-modal.open{display:flex}
+.qa-modal-inner{background:var(--surface);border:1px solid var(--border2);border-radius:16px;padding:28px;width:100%;max-width:600px;max-height:80vh;overflow-y:auto}
+.qa-modal-inner h2{font-size:16px;font-weight:500;margin-bottom:6px}
+.qa-modal-inner .sub{font-size:13px;color:var(--text2);margin-bottom:20px}
+
+.qa-item{background:var(--surface2);border-radius:8px;padding:14px;margin-bottom:12px}
+.qa-item p{font-size:13px;color:var(--text2);margin-bottom:8px;font-style:italic}
+.qa-answer{background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:12px;font-size:13px;line-height:1.7;color:var(--text);white-space:pre-wrap}
+.qa-generating{color:var(--text3);font-size:12px;font-family:'DM Mono',monospace}
+
+/* LOADING */
+.loading-bar{height:2px;background:var(--border);border-radius:1px;overflow:hidden;margin:12px 0}
+.loading-bar-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--teal));border-radius:1px;animation:load 1.5s ease-in-out infinite}
+@keyframes load{0%{width:0;margin-left:0}50%{width:60%;margin-left:20%}100%{width:0;margin-left:100%}}
+
+.spinner{display:inline-block;width:14px;height:14px;border:2px solid var(--border2);border-top-color:var(--accent);border-radius:50%;animation:spin 0.6s linear infinite;vertical-align:-2px}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* NOTICE */
+.notice{padding:12px 16px;border-radius:8px;font-size:13px;margin-bottom:16px}
+.notice-amber{background:rgba(251,191,36,0.08);border:1px solid rgba(251,191,36,0.2);color:var(--amber)}
+.notice-green{background:rgba(74,222,128,0.08);border:1px solid rgba(74,222,128,0.2);color:var(--green)}
+.notice-red{background:rgba(248,113,113,0.08);border:1px solid rgba(248,113,113,0.2);color:var(--red)}
+
+/* INPUT GROUP */
+.input-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+.input-group{display:flex;flex-direction:column;gap:6px}
+.input-group label{font-size:11px;font-family:'DM Mono',monospace;color:var(--text3);letter-spacing:0.06em}
+input[type=text],input[type=date],select.full{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;color:var(--text);font-size:13px;outline:none;transition:border 0.15s}
+input[type=text]:focus,input[type=date]:focus,select.full:focus{border-color:var(--border2)}
+input[type=text]::placeholder{color:var(--text3)}
+select.full{cursor:pointer}
+select.full option{background:var(--surface)}
+
+.divider{border:none;border-top:1px solid var(--border);margin:20px 0}
+
+@media(max-width:700px){
+  .gen-layout,.outreach-layout,.input-row{grid-template-columns:1fr}
+  .gen-right{position:static}
+  .nav{padding:12px 16px}
+  .page{padding:16px}
+}
+</style>
 </head>
 <body>
-    <div id="root"></div>
-    
-    <script type="text/babel">
-        const { useState } = React;
 
-        function ResumeGenerator() {
-          const [jobDescription, setJobDescription] = useState('');
-          const [additionalInfo, setAdditionalInfo] = useState('');
-          const [loading, setLoading] = useState(false);
-          const [resumeText, setResumeText] = useState('');
-          const [coverLetterText, setCoverLetterText] = useState('');
-          const [copied, setCopied] = useState({ resume: false, cover: false });
-          const [error, setError] = useState('');
-          const [missingInfo, setMissingInfo] = useState([]);
-          const [showInfoPrompt, setShowInfoPrompt] = useState(false);
+<nav class="nav">
+  <div class="nav-logo">mk<span>/</span>apply</div>
+  <div class="nav-tabs">
+    <button class="nav-tab active" onclick="showPage('generate',this)">Generate</button>
+    <button class="nav-tab" onclick="showPage('tracker',this)">Tracker</button>
+    <button class="nav-tab" onclick="showPage('outreach',this)">Outreach</button>
+  </div>
+  <div class="nav-right">
+    <span class="auth-status disconnected" id="authStatus">● not connected</span>
+    <button class="auth-btn" id="authBtn" onclick="handleAuth()">Connect Google</button>
+  </div>
+</nav>
 
-          const masterContent = {
-            name: "MEHAK KHATTAR, C.M.",
-            contact: "khattarmehak1@gmail.com | 416.893.1395 | Mehak Khattar | LinkedIn",
-            professionalProfile: "Creative and data-savvy social media leader with 4+ years of experience blending entertainment and marketing to drive growth across TikTok, Instagram, LinkedIn, YouTube, and more. Proven track record leading UGC campaigns, managing creator platforms, and delivering high-conversion content strategies. Expertise in social analytics, brand storytelling, and content production. Strategic thinker with a hands-on edge, known for bringing big ideas to life and building loyal communities. Legally eligible to work in Canada.",
-            
-            experiences: [
-              {
-                company: "VisaServe Immigration Law P.C.",
-                dates: "01.2025 to present",
-                title: "Content & Client Specialist (Freelance)",
-                bullets: [
-                  "Grew reach by 228% and engagement by 4x through tailored educational reels and carousel series",
-                  "Created a unified social content system across TikTok, Instagram, YouTube Shorts, and X, increasing organic inbound inquiries for legal services.",
-                  "Designed weekly strategy decks with hooks, trends, and conversion copy for video and static content."
-                ]
-              },
-              {
-                company: "Ahluwalia Law Offices",
-                dates: "03.2025 to present",
-                title: "Content Marketing Specialist (Freelance)",
-                bullets: [
-                  "Led SEO-backed blog strategy and cross-platform content to reach U.S. immigrant audiences.",
-                  "Boosted organic impressions on X by 460% through consistent content hooks tied to real-time immigration news.",
-                  "Delivered weekly analytics reports and audience insights, improving CTR by 30% across content types.",
-                  "Established many process-related efficiencies: planning calendars, detailed forecasting tools for media buying, and support on new product strategy and selling kits"
-                ]
-              },
-              {
-                company: "CrackerJack Television LLC.",
-                dates: "06.2024 to 12.2024",
-                title: "Digital Strategist",
-                bullets: [
-                  "Managed communications and developed social presence for a new television network.",
-                  "Created and scheduled campaigns for two flagship non-scripted shows, engaging music and culture audiences across Canada.",
-                  "Directed short-form behind-the-scenes content for YouTube, IG Reels, and TikTok."
-                ]
-              },
-              {
-                company: "Growster Marketing",
-                dates: "06.2022 to 08.2023",
-                title: "Operations Manager",
-                bullets: [
-                  "Managed a creative and marketing team of six; served a diverse client base including e-commerce, health, and education startups",
-                  "Developed digital branding, pitch decks, and marketing collateral for over 10 SMB clients",
-                  "Directed campaign strategies, performance reviews, and client communication workflows"
-                ]
-              }
-            ],
-            
-            education: [
-              "Chartered Marketer (C.M.) - Canadian Marketing Association - 2025",
-              "Postgraduate Certificate, Film & Multiplatform Storytelling - Humber College, Dean's List - 2024",
-              "Bachelor of Arts, Media & Communication - Amity University - 2021"
-            ],
-            
-            technicalSkills: "Canva | MS Office | Nielsen | Adobe Suite | Meta, X, YouTube | Google Analytics | SalesForce | MailChimp | Hootsuite | Sprout Social | Buffer | CapCut | DaVinci Resolve | WordPress | Asana | Trello"
-          };
+<!-- GENERATE PAGE -->
+<div class="page active" id="page-generate">
+<div class="max-w">
 
-          const extractCompanyName = (jd) => {
-            const lines = jd.split('\n').filter(line => line.trim());
-            for (let i = 0; i < Math.min(15, lines.length); i++) {
-              const line = lines[i].trim();
-              if (line.length > 2 && line.length < 60 && 
-                  !line.toLowerCase().includes('job') && 
-                  !line.toLowerCase().includes('position') &&
-                  !line.toLowerCase().includes('apply') &&
-                  !/^\d/.test(line)) {
-                return line;
-              }
-            }
-            return null;
-          };
+  <div id="stepIndicator" class="steps">
+    <div class="step active" id="step1">01 paste jd</div>
+    <div class="step" id="step2">02 review strategy</div>
+    <div class="step" id="step3">03 generated</div>
+  </div>
 
-          const extractJobTitle = (jd) => {
-            const titleKeywords = ['manager', 'coordinator', 'specialist', 'associate', 'strategist', 'lead', 'director'];
-            const lines = jd.split('\n');
-            
-            for (let i = 0; i < Math.min(10, lines.length); i++) {
-              const line = lines[i].trim();
-              const lower = line.toLowerCase();
-              if (titleKeywords.some(keyword => lower.includes(keyword)) && line.length < 80) {
-                return line;
-              }
-            }
-            return null;
-          };
+  <!-- STEP 1 -->
+  <div id="view-step1">
+    <div class="gen-layout">
+      <div class="gen-left">
+        <div class="section-label">Job Description</div>
+        <textarea id="jdInput" style="min-height:340px" placeholder="Paste the full job description here. Include company name, role title, and all requirements. The more complete, the better the output."></textarea>
 
-          const convertToHTML = (resumeText, coverLetterText) => {
-            const sections = {
-              name: '',
-              contact: '',
-              profile: '',
-              expertise: [],
-              achievements: { campaign: [], platform: [], production: [] },
-              experiences: [],
-              education: [],
-              skills: ''
-            };
-
-            const lines = resumeText.split('\n');
-            let currentSection = '';
-            let currentSubsection = '';
-            let currentExp = null;
-
-            for (let i = 0; i < lines.length; i++) {
-              const line = lines[i].trim();
-              if (!line) continue;
-
-              if (line.includes('KHATTAR') && i < 3) {
-                sections.name = line;
-              } else if (line.includes('@') && line.includes('|')) {
-                sections.contact = line;
-              } else if (line === 'PROFESSIONAL PROFILE') {
-                currentSection = 'profile';
-              } else if (line === 'AREAS OF EXPERTISE') {
-                currentSection = 'expertise';
-              } else if (line === 'CAREER ACHIEVEMENTS') {
-                currentSection = 'achievements';
-              } else if (line === 'PROFESSIONAL EXPERIENCE') {
-                currentSection = 'experience';
-              } else if (line.includes('EDUCATION')) {
-                currentSection = 'education';
-              } else if (line === 'TECHNICAL SKILLS') {
-                currentSection = 'skills';
-              } else if (currentSection === 'profile' && !line.match(/^[A-Z\s]+$/)) {
-                sections.profile += line + ' ';
-              } else if (currentSection === 'expertise' && !line.match(/^[A-Z\s]+$/)) {
-                sections.expertise.push(line);
-              } else if (currentSection === 'achievements') {
-                if (line.includes('Campaign Results:')) {
-                  currentSubsection = 'campaign';
-                } else if (line.includes('Platform Success:')) {
-                  currentSubsection = 'platform';
-                } else if (line.includes('Production and Innovation:')) {
-                  currentSubsection = 'production';
-                } else if (line.startsWith('•')) {
-                  sections.achievements[currentSubsection].push(line.substring(1).trim());
-                }
-              } else if (currentSection === 'experience') {
-                if (line.match(/\d{2}\.\d{4}/) && !line.startsWith('•')) {
-                  if (currentExp) sections.experiences.push(currentExp);
-                  const parts = line.split(/\s{2,}/);
-                  currentExp = { 
-                    company: parts[0] || line.split(/\d{2}\.\d{4}/)[0].trim(),
-                    dates: line.match(/\d{2}\.\d{4}.*$/)?.[0] || '',
-                    title: '',
-                    bullets: []
-                  };
-                } else if (currentExp && !currentExp.title && !line.startsWith('•')) {
-                  currentExp.title = line;
-                } else if (currentExp && line.startsWith('•')) {
-                  currentExp.bullets.push(line.substring(1).trim());
-                }
-              } else if (currentSection === 'education' && !line.match(/^[A-Z\s,]+$/)) {
-                sections.education.push(line);
-              } else if (currentSection === 'skills') {
-                sections.skills += line + ' ';
-              }
-            }
-            
-            if (currentExp) sections.experiences.push(currentExp);
-
-            const generateExpertiseTable = () => {
-              const col1 = [], col2 = [], col3 = [];
-              sections.expertise.forEach((item, idx) => {
-                if (idx % 3 === 0) col1.push(item);
-                else if (idx % 3 === 1) col2.push(item);
-                else col3.push(item);
-              });
-
-              const maxRows = Math.max(col1.length, col2.length, col3.length);
-              let rows = '';
-              
-              for (let i = 0; i < maxRows; i++) {
-                rows += `<tr>
-                  <td>${col1[i] || '&nbsp;'}</td>
-                  <td>${col2[i] || '&nbsp;'}</td>
-                  <td>${col3[i] || '&nbsp;'}</td>
-                </tr>`;
-              }
-              
-              return rows;
-            };
-
-            const resumeHTML = `<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-    <style>
-        body {
-            font-family: Garamond, serif;
-            font-size: 11pt;
-            margin: 1in;
-            line-height: 1.15;
-        }
-        .name {
-            font-size: 24pt;
-            font-weight: bold;
-            margin-bottom: 6pt;
-        }
-        .contact {
-            font-size: 11pt;
-            margin-bottom: 12pt;
-        }
-        .heading {
-            font-size: 11pt;
-            font-weight: bold;
-            margin-top: 12pt;
-            margin-bottom: 6pt;
-            text-transform: uppercase;
-        }
-        .expertise-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 12pt;
-        }
-        .expertise-table td {
-            width: 33.33%;
-            padding: 3pt 6pt;
-            border-left: 1pt solid black;
-            border-right: 1pt solid black;
-            vertical-align: top;
-        }
-        .expertise-table td:first-child { border-left: none; }
-        .expertise-table td:last-child { border-right: none; }
-        .subheading {
-            font-weight: bold;
-            margin-top: 6pt;
-        }
-        .job-header {
-            margin-top: 9pt;
-            font-weight: bold;
-        }
-        .job-company {
-            display: inline-block;
-            width: 60%;
-        }
-        .job-dates {
-            display: inline-block;
-            width: 38%;
-            text-align: right;
-        }
-        .job-title {
-            font-weight: bold;
-            margin-bottom: 3pt;
-        }
-        ul {
-            margin: 3pt 0;
-            padding-left: 0.3in;
-        }
-        li { margin-bottom: 3pt; }
-        .education-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 6pt;
-        }
-        .education-table td {
-            padding: 3pt 6pt;
-            border: 1pt solid black;
-        }
-        .education-table td:nth-child(2) { font-weight: bold; }
-        p { margin: 0 0 6pt 0; }
-    </style>
-</head>
-<body>
-    <div class="name">${sections.name}</div>
-    <div class="contact">${sections.contact}</div>
-    
-    <div class="heading">Professional Profile</div>
-    <p>${sections.profile.trim()}</p>
-    
-    <div class="heading">Areas of Expertise</div>
-    <table class="expertise-table">
-        ${generateExpertiseTable()}
-    </table>
-    
-    <div class="heading">Career Achievements</div>
-    <div class="subheading">Campaign Results:</div>
-    <ul>${sections.achievements.campaign.map(a => `<li>${a}</li>`).join('')}</ul>
-    <div class="subheading">Platform Success:</div>
-    <ul>${sections.achievements.platform.map(a => `<li>${a}</li>`).join('')}</ul>
-    <div class="subheading">Production and Innovation:</div>
-    <ul>${sections.achievements.production.map(a => `<li>${a}</li>`).join('')}</ul>
-    
-    <div class="heading">Professional Experience</div>
-    ${sections.experiences.map(exp => `
-        <div class="job-header">
-            <span class="job-company">${exp.company}</span>
-            <span class="job-dates">${exp.dates}</span>
+        <div style="margin-top:12px">
+          <div class="section-label">Date Posted (optional)</div>
+          <input type="date" id="datePosted" style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;color:var(--text);font-size:13px;outline:none;width:200px">
         </div>
-        <div class="job-title">${exp.title}</div>
-        <ul>${exp.bullets.map(b => `<li>${b}</li>`).join('')}</ul>
-    `).join('')}
-    
-    <div class="heading">Education, Professional Training and Certifications</div>
-    <table class="education-table">
-        ${sections.education.map(edu => {
-            const parts = edu.split(' - ');
-            return `<tr>
-                <td style="width:40%">${parts[0] || ''}</td>
-                <td style="width:40%">${parts[1] || ''}</td>
-                <td style="width:20%">${parts[2] || ''}</td>
-            </tr>`;
-        }).join('')}
+
+        <button class="btn btn-primary btn-full" style="margin-top:16px" id="analyzeBtn" onclick="analyzeJD()">
+          Analyse JD
+        </button>
+        <div id="analyzeLoading" style="display:none">
+          <div class="loading-bar"><div class="loading-bar-fill"></div></div>
+          <p style="font-size:12px;color:var(--text3);font-family:'DM Mono',monospace;text-align:center">running analysis — prompts 1 and 2 of 9</p>
+        </div>
+      </div>
+
+      <div class="gen-right">
+        <div class="card">
+          <div class="section-label">What this tool does</div>
+          <p style="font-size:13px;color:var(--text2);line-height:1.8">Paste a JD and the system runs a 9-prompt internal analysis. You get a positioning hypothesis and story selection to review first. Approve or push back. Then it generates the full resume and cover letter and pushes both to your Google Drive.</p>
+          <hr style="border:none;border-top:1px solid var(--border);margin:14px 0">
+          <div class="section-label">Resume bases available</div>
+          <p style="font-size:12px;color:var(--text2);line-height:1.8">Brand and Creative Strategist<br>B2B Content and Marketing Strategist<br>The system picks which one fits and tells you why.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 2: REVIEW -->
+  <div id="view-step2" style="display:none">
+    <div id="hypothesisContent"></div>
+
+    <div class="comments-area">
+      <div class="section-label">Push back or add direction (optional)</div>
+      <textarea id="userComments" style="min-height:80px" placeholder="e.g. I want to lead with the Momamia launch, not the ALO dashboard. De-emphasise the legal services framing. The tone should feel more creative-side."></textarea>
+    </div>
+
+    <div style="display:flex;gap:10px;margin-top:14px">
+      <button class="btn btn-primary" id="approveBtn" onclick="generateFull()">Approve and Generate</button>
+      <button class="btn btn-ghost" onclick="goBack()">Back to JD</button>
+    </div>
+    <div id="generateLoading" style="display:none;margin-top:12px">
+      <div class="loading-bar"><div class="loading-bar-fill"></div></div>
+      <p style="font-size:12px;color:var(--text3);font-family:'DM Mono',monospace;text-align:center" id="generateLoadingText">running prompts 3 through 8</p>
+    </div>
+  </div>
+
+  <!-- STEP 3: RESULT -->
+  <div id="view-step3" style="display:none">
+    <div id="driveNotice"></div>
+
+    <div class="result-tabs">
+      <button class="result-tab active" onclick="showResultTab('resume',this)">Resume</button>
+      <button class="result-tab" onclick="showResultTab('cover',this)">Cover Letter</button>
+    </div>
+
+    <div id="result-resume" class="result-content"></div>
+    <div id="result-cover" class="result-content" style="display:none"></div>
+
+    <div class="action-row">
+      <button class="btn btn-green btn-sm" onclick="copyResult('resume')">Copy Resume</button>
+      <button class="btn btn-green btn-sm" onclick="copyResult('cover')">Copy Cover Letter</button>
+      <button class="btn btn-ghost btn-sm" id="openResumeDoc" style="display:none" onclick="openDoc('resume')">Open Resume in Drive</button>
+      <button class="btn btn-ghost btn-sm" id="openCoverDoc" style="display:none" onclick="openDoc('cover')">Open Cover Letter in Drive</button>
+      <button class="btn btn-teal btn-sm" onclick="openQAModal()">Answer Application Questions</button>
+      <button class="btn btn-ghost btn-sm" onclick="resetToStart()">New Application</button>
+    </div>
+  </div>
+
+</div>
+</div>
+
+<!-- TRACKER PAGE -->
+<div class="page" id="page-tracker">
+<div class="max-w">
+  <div class="tracker-header">
+    <div>
+      <div class="section-label">Applications</div>
+      <p style="font-size:13px;color:var(--text2)" id="trackerCount">Loading...</p>
+    </div>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-ghost btn-sm" onclick="loadTracker()">Refresh</button>
+      <a id="sheetLink" href="#" target="_blank" style="display:none"><button class="btn btn-ghost btn-sm">Open Sheet</button></a>
+    </div>
+  </div>
+
+  <div id="trackerNotice"></div>
+
+  <div style="overflow-x:auto">
+    <table class="tracker-table">
+      <thead>
+        <tr>
+          <th>Company</th>
+          <th>Role</th>
+          <th>Posted</th>
+          <th>Applied</th>
+          <th>Status</th>
+          <th>Resume</th>
+          <th>Cover Letter</th>
+        </tr>
+      </thead>
+      <tbody id="trackerBody">
+        <tr><td colspan="7"><div class="empty-state">connect google to load applications</div></td></tr>
+      </tbody>
     </table>
-    
-    <div class="heading">Technical Skills</div>
-    <p>${sections.skills.trim()}</p>
-</body>
-</html>`;
+  </div>
+</div>
+</div>
 
-            const coverLetterHTML = `<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-    <style>
-        body {
-            font-family: Garamond, serif;
-            font-size: 11pt;
-            margin: 1in;
-            line-height: 1.5;
-        }
-        .name {
-            font-size: 24pt;
-            font-weight: bold;
-            margin-bottom: 6pt;
-        }
-        .contact {
-            font-size: 11pt;
-            margin-bottom: 18pt;
-        }
-        p { margin: 9pt 0; }
-    </style>
-</head>
-<body>
-    ${coverLetterText.split('\n\n').map(para => `<p>${para.trim()}</p>`).join('')}
-</body>
-</html>`;
+<!-- OUTREACH PAGE -->
+<div class="page" id="page-outreach">
+<div class="max-w">
+  <div class="outreach-layout">
+    <div>
+      <div class="section-label">Contact Details</div>
+      <div class="card">
+        <div class="input-group" style="margin-bottom:12px">
+          <label>Full Name</label>
+          <input type="text" id="outFirstName" placeholder="Alex Chen">
+        </div>
+        <div class="input-group" style="margin-bottom:12px">
+          <label>Title / Role at Company</label>
+          <input type="text" id="outTitle" placeholder="Head of Content, Senior Recruiter">
+        </div>
+        <div class="input-group" style="margin-bottom:12px">
+          <label>Company</label>
+          <input type="text" id="outCompany" placeholder="Company name">
+        </div>
+        <div class="input-group" style="margin-bottom:12px">
+          <label>Role I am Applying For</label>
+          <input type="text" id="outRole" placeholder="Brand Strategist">
+        </div>
+        <div class="input-group" style="margin-bottom:12px">
+          <label>Notes (optional — anything specific about this person, how you found them, mutual context)</label>
+          <textarea id="outNotes" style="min-height:80px" placeholder="Met at CMA Toronto event in April. They mentioned they are scaling the content team. Mutual connection is Sarah at Ogilvy."></textarea>
+        </div>
+        <button class="btn btn-primary btn-full" onclick="generateOutreach()">Generate All Three</button>
+        <div id="outreachLoading" style="display:none;margin-top:10px">
+          <div class="loading-bar"><div class="loading-bar-fill"></div></div>
+        </div>
+      </div>
+    </div>
 
-            return { resumeHTML, coverLetterHTML };
-          };
+    <div>
+      <div class="section-label">Generated Messages</div>
+      <div id="outreachResults">
+        <div class="card" style="color:var(--text3);font-size:13px;text-align:center;padding:40px 20px;font-family:'DM Mono',monospace">fill in contact details to generate</div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
 
-          const downloadHTML = (html, filename) => {
-            const blob = new Blob([html], { type: 'text/html' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = filename;
-            a.click();
-            URL.revokeObjectURL(url);
-          };
+<!-- Q&A MODAL -->
+<div class="qa-modal" id="qaModal">
+  <div class="qa-modal-inner">
+    <h2>Application Questions</h2>
+    <p class="sub">Paste in a question from the application form and get a ready answer based on your background and this specific role.</p>
 
-          const generateContent = async () => {
-            if (!jobDescription.trim()) {
-              setError('Please paste a job description');
-              return;
-            }
+    <div style="display:flex;gap:8px;margin-bottom:16px">
+      <textarea id="qaQuestion" style="min-height:60px;flex:1" placeholder="Paste the application question here..."></textarea>
+    </div>
+    <div style="display:flex;gap:8px;margin-bottom:20px">
+      <button class="btn btn-primary" onclick="answerQuestion()">Generate Answer</button>
+      <button class="btn btn-ghost" onclick="addAnotherQuestion()">Add Another</button>
+    </div>
 
-            setLoading(true);
-            setError('');
-            setMissingInfo([]);
-            setShowInfoPrompt(false);
+    <div id="qaAnswers"></div>
 
-            try {
-              const companyName = extractCompanyName(jobDescription);
-              const jobTitle = extractJobTitle(jobDescription);
-              
-              const missing = [];
-              if (!companyName) missing.push('company name');
-              if (!jobTitle) missing.push('job title');
-              
-              if (missing.length > 0 && !additionalInfo) {
-                setMissingInfo(missing);
-                setShowInfoPrompt(true);
-                setLoading(false);
-                return;
-              }
+    <hr class="divider">
+    <button class="btn btn-ghost btn-sm" onclick="closeQAModal()">Close</button>
+  </div>
+</div>
 
-              const prompt = `You are an expert resume writer. Create tailored resume and cover letter for this job.
+<script>
+// ─── STATE ───────────────────────────────────────────────────────────────────
+const state = {
+  accessToken: null,
+  refreshToken: null,
+  tokenExpiry: null,
+  currentJD: '',
+  currentCompany: '',
+  currentRole: '',
+  currentDatePosted: '',
+  hypothesisData: null,
+  generatedResume: '',
+  generatedCover: '',
+  resumeDocUrl: '',
+  coverDocUrl: '',
+  trackerSheetId: '',
+  trackerSheetUrl: '',
+  folderId: null
+};
+
+// ─── MASTER PROFILE ───────────────────────────────────────────────────────────
+const MASTER_PROFILE = `
+MEHAK KHATTAR — Chartered Marketer (CM)
+Toronto, ON | khattarmehak1@gmail.com | 416.893.1395 | mehak.works
+PGWP holder, 17 months remaining. Available hybrid or onsite.
+
+ONE-LINE: I scale brands and businesses and enable them to become self-sustained lead magnets.
+
+BACKGROUND: 5 years as a brand builder, creative strategist, and marketing operator across D2C consumer brands, luxury retail, QSR, and professional services in India and Canada. Published byline at Hindustan Times. Chartered Marketer (CM), Canadian Marketing Association. Built and shipped a live Next.js operational dashboard used daily by an 8-person law firm. Dean's List, Humber College.
+
+SUPERPOWER: Identifying workflow and content gaps before being asked and closing them end to end, from strategy through execution.
+
+--- EXPERIENCE ---
+
+GROWSTER (Grandir Vitae Pvt. Ltd.) — New Delhi, India | 2022–2023
+Title: Creative Operations Lead
+Full-service creative and digital marketing agency. Managed a team of 6 across 12+ client accounts simultaneously.
+Operations built: Asana client intake, bi-monthly social calendar reviews, structured brainstorm sessions.
+
+Ugees — D2C Personal Care:
+Full brand and creative transformation. Repositioned brand voice, designed viral meme-culture campaigns, revamped content calendar with influencer collaborations. Tripled revenue in 3 months, brand moved from loss-making to profitable. Subsequently featured on Shark Tank India.
+
+Momamia — D2C Baby Skincare:
+Conceptualized and executed the "By Moms, For Moms" GTM launch. Interviewed influencer moms, wrote emotionally resonant scripts, directed and edited video for Instagram Reels and YouTube Shorts. 1M+ impressions within 42 hours of launch. Exceeding all benchmarks. Set the creative tone for all future campaigns.
+
+KulchaBros — QSR:
+Spearheaded brand launch targeting Gen Z and millennials through meme marketing, editorial-style comics and caricatures. Earned organic media coverage in Midday. Converted digital buzz into physical foot traffic.
+
+Dayal Opticals — Luxury Eyewear (80+ locations):
+Managed digital ad assets and campaign rollouts across 80+ physical stores and D2C platform. Strategized CSR campaign with ZEISS for European audiences. Assets distributed across European markets.
+
+Seduire by Jamies — Heritage Fashion / Luxury Linen:
+Revived post-COVID through strategic social media repositioning. Sold out collection within 3 weeks of relaunch. Social engagement doubled.
+
+AHLUWALIA LAW OFFICES — Texas, USA (Remote) | March 2025–Present
+Title: B2B Content and Digital Marketing Strategist
+U.S. immigration law firm, multi-state presence, serves medical and tech businesses in DFW and Austin.
+- H1B B2B email campaigns: 60% open rates and 5% CTR across 250–300 contacts per campaign. Nearly 3x the B2B legal services benchmark of 20–25%.
+- SEO: Grew organic impressions from ~87K to 500K+ in 3 months (460% increase). 85% engagement rate on consultation page.
+- Lead generation: 30%+ increase in qualified inbound leads within 3 months.
+- Pipeline: Built full digital marketing pipeline from zero in 60 days including SEO blogs, LinkedIn campaigns, email newsletters, targeted landing pages.
+- Dashboard: Identified attorneys and paralegals were manually tracking immigration updates across DOS, USCIS, and multiple federal sources. Built and deployed a centralized Next.js dashboard on Vercel. Now used daily by all 8 firm staff.
+- Brand: Redesigned firm logo, developed cohesive brand identity for corporate client acquisition.
+- Built custom AI productivity tools for content output speed and performance tracking.
+
+VISASERVE IMMIGRATION LAW P.C. — Toronto, ON | January 2025–Present
+Title: Content and SEO Strategist
+Canadian immigration law firm serving cross-border and intra-company transfer clients, corporate HR teams, and multinational employers.
+- 228% growth in organic website clicks over 6 months.
+- 4x increase in social media engagement.
+- Scaled firm video content to 50,000+ views in one year across Instagram, TikTok, LinkedIn, YouTube Shorts.
+- Re-optimized core pages for CUSMA, LMIA, spousal sponsorship, intra-company transfers.
+- Hosts and produces the firm's branded podcast targeting global businesses navigating U.S. and Canada market entry. Audience is C-suite, founders, and HR decision-makers.
+- Developed thought leadership strategy for the managing attorney including industry event placement.
+
+CRACKERJACK TELEVISION LLC. — Toronto, ON | June–December 2024
+Title: Creative and Pre-Production Specialist
+Early-stage television network focused on music and culture content.
+- Developed social media presence and communications strategy for network launch.
+- Created and pitched concepts for non-scripted original programming.
+- Secured U.S. copyright for two original reality TV show concepts.
+
+HINDUSTAN TIMES — India | May–June 2021
+Published journalist. Byline published in one of Asia's largest English-language daily newspapers. Work met full editorial standards of one of Asia's most widely read mastheads.
+
+--- EDUCATION ---
+Chartered Marketer (CM) — Canadian Marketing Association — 2025
+Postgraduate Certificate, Film and Multiplatform Storytelling — Humber College (Dean's List) — 2024
+Bachelor of Arts, Journalism and Mass Communication — Amity University — 2021
+Published Byline — Hindustan Times — 2021
+
+--- SKILLS ---
+HubSpot, Google Analytics 4, Tridion CMS, Next.js, Vercel, Adobe Illustrator, Adobe Photoshop, Adobe Premiere Pro, DaVinci Resolve, Canva Pro, Hootsuite, Notion, Asana, Descript, Office 365, CapCut, Adobe Digital Asset Manager, SEMrush, Ahrefs, Google Search Console, WordPress
+
+--- KEY METRICS ---
+228% organic click growth — Visaserve, 6 months
+4x social media engagement — Visaserve
+50,000+ video views — Visaserve, 1 year
+460% impressions growth 87K to 500K — ALO, 3 months
+85% consultation page engagement rate — ALO
+30%+ qualified lead increase — ALO, 3 months
+60% email open rate / 5% CTR — ALO H1B campaigns, 3x industry benchmark
+1M+ impressions in 42 hours — Momamia launch
+Revenue tripled in 3 months — Ugees, loss to profitable
+Collection sold out in 3 weeks — Seduire by Jamies
+8-person firm using dashboard daily — ALO Next.js tool
+12+ simultaneous client accounts — Growster
+
+--- WRITING RULES (non-negotiable) ---
+No hyphens or em dashes used as punctuation anywhere.
+No AI writing tells: no "it's not X it's Y", no rule of three overload, no "the ones who...", no "But here's the thing:", no present-ing verb spam, no vague opinions, no corporate formality like utilize or execute, no symbolic language like represents or reflects, no fake named examples, no exactly 5 bullets, no repeated sentence structures, no unsourced stats, no robotic cadence.
+No words: tapestry, crafts, crafting, unsung hero, secret weapon, fosters, cultivates, game changer, fluff.
+No passive voice. No phrases like "responsible for" or "managed" without a result attached.
+Designation is CM not CMA. CMA is the organization.
+`;
+
+const SYSTEM_PROMPT = `You are a senior resume strategist helping Mehak Khattar land her next role in Toronto. You know her full background. You write with precision and without filler. You never use hyphens or em dashes as punctuation. You never use the AI writing tells listed in her profile. You produce clean, direct output exactly as instructed.`;
+
+// ─── AUTH ─────────────────────────────────────────────────────────────────────
+function handleAuth() {
+  if (state.accessToken) {
+    state.accessToken = null;
+    state.refreshToken = null;
+    localStorage.removeItem('mk_tokens');
+    document.getElementById('authStatus').textContent = '● not connected';
+    document.getElementById('authStatus').className = 'auth-status disconnected';
+    document.getElementById('authBtn').textContent = 'Connect Google';
+    return;
+  }
+  fetch('/api/auth/callback?action=url')
+    .then(r => r.json())
+    .then(d => { window.location.href = d.url; })
+    .catch(err => console.error('Auth error:', err));
+}
+
+async function getValidToken() {
+  if (!state.accessToken) return null;
+  if (state.tokenExpiry && Date.now() < state.tokenExpiry - 60000) return state.accessToken;
+  if (!state.refreshToken) return null;
+  try {
+    const r = await fetch('/api/auth/refresh', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ refresh_token: state.refreshToken })
+    });
+    const d = await r.json();
+    if (d.access_token) {
+      state.accessToken = d.access_token;
+      state.tokenExpiry = Date.now() + (d.expires_in * 1000);
+      saveTokens();
+      return state.accessToken;
+    }
+  } catch(e) {}
+  return null;
+}
+
+function saveTokens() {
+  localStorage.setItem('mk_tokens', JSON.stringify({
+    accessToken: state.accessToken,
+    refreshToken: state.refreshToken,
+    tokenExpiry: state.tokenExpiry
+  }));
+}
+
+function loadTokens() {
+  try {
+    const t = localStorage.getItem('mk_tokens');
+    if (t) {
+      const d = JSON.parse(t);
+      state.accessToken = d.accessToken;
+      state.refreshToken = d.refreshToken;
+      state.tokenExpiry = d.tokenExpiry;
+      updateAuthUI(true);
+    }
+  } catch(e) {}
+}
+
+function updateAuthUI(connected) {
+  document.getElementById('authStatus').textContent = connected ? '● google connected' : '● not connected';
+  document.getElementById('authStatus').className = 'auth-status' + (connected ? '' : ' disconnected');
+  document.getElementById('authBtn').textContent = connected ? 'Disconnect' : 'Connect Google';
+}
+
+// handle OAuth callback
+function handleOAuthReturn() {
+  const params = new URLSearchParams(window.location.search);
+  if (params.get('auth_success')) {
+    state.accessToken = params.get('access_token');
+    state.refreshToken = params.get('refresh_token');
+    state.tokenExpiry = Date.now() + (parseInt(params.get('expires_in') || '3600') * 1000);
+    saveTokens();
+    updateAuthUI(true);
+    window.history.replaceState({}, '', '/');
+  }
+  if (params.get('auth_error')) {
+    alert('Auth error: ' + params.get('auth_error'));
+    window.history.replaceState({}, '', '/');
+  }
+}
+
+// ─── NAVIGATION ───────────────────────────────────────────────────────────────
+function showPage(name, btn) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('page-' + name).classList.add('active');
+  if (btn) btn.classList.add('active');
+  if (name === 'tracker') loadTracker();
+}
+
+// ─── STEP MANAGEMENT ─────────────────────────────────────────────────────────
+function goToStep(n) {
+  ['step1','step2','step3'].forEach((s,i) => {
+    const el = document.getElementById(s);
+    el.className = 'step' + (i+1 < n ? ' done' : i+1 === n ? ' active' : '');
+  });
+  ['view-step1','view-step2','view-step3'].forEach((v,i) => {
+    document.getElementById(v).style.display = i+1 === n ? 'block' : 'none';
+  });
+}
+
+function goBack() { goToStep(1); }
+
+function resetToStart() {
+  state.generatedResume = '';
+  state.generatedCover = '';
+  state.hypothesisData = null;
+  document.getElementById('jdInput').value = '';
+  document.getElementById('userComments').value = '';
+  goToStep(1);
+}
+
+// ─── STEP 1: ANALYSE ─────────────────────────────────────────────────────────
+async function analyzeJD() {
+  const jd = document.getElementById('jdInput').value.trim();
+  if (!jd) { alert('Please paste a job description first.'); return; }
+
+  state.currentJD = jd;
+  state.currentDatePosted = document.getElementById('datePosted').value;
+
+  document.getElementById('analyzeBtn').disabled = true;
+  document.getElementById('analyzeLoading').style.display = 'block';
+
+  const prompt = `You are analysing a job description for Mehak Khattar. Run the following two analyses and return a JSON object only, no other text.
+
+PROMPT 1 — JD Analysis:
+Read this job description carefully. Identify: (1) all repeated words and phrases, (2) what problem the hiring manager is most likely solving for, (3) the underlying anxieties or past failures this role seems to be responding to.
+
+PROMPT 2 — Positioning Hypothesis:
+Based on the JD and Mehak's profile, define a positioning hypothesis in 1 to 2 sentences. Which version of her career is this role hiring? What angle should the application lead with? What should be de-emphasised or cut?
+
+Also determine:
+- company: extract company name from JD
+- role: extract job title from JD
+- resumeBase: which resume base to use, either "Brand and Creative Strategist" or "B2B Content and Marketing Strategist", and one sentence why
+- storiesKeep: array of 4 to 6 specific story bullets from her experience to lead with (be specific, name the project and result)
+- storiesCut: array of 2 to 3 things to de-emphasise or cut entirely for this role, with one-sentence reason each
 
 JOB DESCRIPTION:
-${jobDescription}
+${jd}
 
-${companyName ? `Company: ${companyName}` : ''}
-${jobTitle ? `Job Title: ${jobTitle}` : ''}
-${additionalInfo ? `Additional Info: ${additionalInfo}` : ''}
+MEHAK'S PROFILE:
+${MASTER_PROFILE}
 
-MASTER CONTENT:
-${JSON.stringify(masterContent, null, 2)}
-
-CRITICAL: Adjust freelance titles at VisaServe and Ahluwalia to match the target job title (e.g., if applying for "Social Media Manager", change to "Social Media Manager (Freelance)").
-
-Create resume in this exact format:
-
-MEHAK KHATTAR, C.M.
-khattarmehak1@gmail.com | 416.893.1395 | Mehak Khattar | LinkedIn
-
-PROFESSIONAL PROFILE
-[3-4 sentences relevant to this role]
-
-AREAS OF EXPERTISE
-[List 15 skills, one per line, prioritizing JD keywords]
-
-CAREER ACHIEVEMENTS
-Campaign Results:
-- [2 relevant achievements]
-
-Platform Success:
-- [2 relevant achievements]
-
-Production and Innovation:
-- [2 relevant achievements]
-
-PROFESSIONAL EXPERIENCE
-[2-4 most relevant positions with adjusted titles for freelance roles]
-
-EDUCATION, PROFESSIONAL TRAINING AND CERTIFICATIONS
-Chartered Marketer (C.M.) - Canadian Marketing Association - 2025
-Postgraduate Certificate, Film & Multiplatform Storytelling - Humber College, Dean's List - 2024
-Bachelor of Arts, Media & Communication - Amity University - 2021
-
-TECHNICAL SKILLS
-[All tools, emphasizing JD mentions]
-
-Also create cover letter:
-MEHAK KHATTAR, C.M.
-khattarmehak1@gmail.com | 416.893.1395 | Mehak Khattar | LinkedIn
-
-${new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
-
-${companyName || '[Company Name]'}
-
-Re: Application for ${jobTitle || '[Job Title]'}
-
-Dear Hiring Team,
-
-[4-5 paragraphs]
-
-Sincerely,
-Mehak Khattar, Chartered Marketer (C.M.)
-
-Return only JSON:
+Return only valid JSON in this exact shape, no markdown, no backticks:
 {
-  "resume": "full text",
-  "coverLetter": "full text"
+  "company": "",
+  "role": "",
+  "resumeBase": "",
+  "resumeBaseReason": "",
+  "jdProblem": "",
+  "jdAnxieties": "",
+  "hypothesis": "",
+  "storiesKeep": [""],
+  "storiesCut": [{"item": "", "reason": ""}]
 }`;
 
-             const response = await fetch('/api/generate', {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({ prompt })
-});
-
-if (!response.ok) {
-  const errorData = await response.json();
-  throw new Error(errorData.error?.message || 'API request failed');
+  try {
+    const r = await fetch('/api/generate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ prompt, systemPrompt: SYSTEM_PROMPT })
+    });
+    const d = await r.json();
+    const text = d.content[0].text;
+    const jsonMatch = text.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) throw new Error('No JSON returned');
+    const data = JSON.parse(jsonMatch[0]);
+    state.hypothesisData = data;
+    state.currentCompany = data.company || 'Unknown Company';
+    state.currentRole = data.role || 'Unknown Role';
+    renderHypothesis(data);
+    goToStep(2);
+  } catch(err) {
+    alert('Analysis failed: ' + err.message);
+  } finally {
+    document.getElementById('analyzeBtn').disabled = false;
+    document.getElementById('analyzeLoading').style.display = 'none';
+  }
 }
 
-const data = await response.json();
-console.log('Full API Response:', JSON.stringify(data, null, 2)); // Better debug log
-
-// Check for error response from Anthropic API
-if (data.error) {
-  console.error('Anthropic API Error:', data.error);
-  throw new Error(`API Error: ${data.error.message || JSON.stringify(data.error)}`);
+function renderHypothesis(data) {
+  const el = document.getElementById('hypothesisContent');
+  el.innerHTML = `
+    <div class="hypothesis-card" style="border-left:3px solid var(--accent)">
+      <h3>POSITIONING HYPOTHESIS</h3>
+      <p>${data.hypothesis}</p>
+    </div>
+    <div class="hypothesis-card">
+      <h3>WHAT THIS ROLE IS SOLVING FOR</h3>
+      <p style="margin-bottom:8px">${data.jdProblem}</p>
+      <p style="color:var(--text2);font-size:12px">${data.jdAnxieties}</p>
+    </div>
+    <div class="hypothesis-card">
+      <h3>RESUME BASE</h3>
+      <p><span class="badge badge-accent">${data.resumeBase}</span> &nbsp; ${data.resumeBaseReason}</p>
+    </div>
+    <div class="hypothesis-card">
+      <h3>STORIES TO LEAD WITH</h3>
+      <ul class="story-list">
+        ${(data.storiesKeep || []).map(s => `<li>${s}</li>`).join('')}
+      </ul>
+      ${data.storiesCut && data.storiesCut.length ? `
+      <div style="margin-top:12px">
+        <div class="section-label" style="margin-bottom:6px">Cut or de-emphasise</div>
+        <ul class="story-list">
+          ${data.storiesCut.map(s => `<li class="cut">${s.item} — ${s.reason}</li>`).join('')}
+        </ul>
+      </div>` : ''}
+    </div>
+  `;
 }
 
-// Check if response has the expected structure
-if (!data.content || !Array.isArray(data.content) || !data.content[0] || !data.content[0].text) {
-  console.error('Unexpected API response structure:', data);
-  throw new Error(`Invalid API response format. Got: ${JSON.stringify(data)}`);
+// ─── STEP 2 → STEP 3: GENERATE ───────────────────────────────────────────────
+async function generateFull() {
+  const comments = document.getElementById('userComments').value.trim();
+  const data = state.hypothesisData;
+
+  document.getElementById('approveBtn').disabled = true;
+  document.getElementById('generateLoading').style.display = 'block';
+
+  const loadingMsgs = [
+    'running prompts 3 through 5 — headline, profile, skills',
+    'running prompt 6 — story selection',
+    'running prompts 7 and 8 — experience bullets and cover letter',
+    'formatting output'
+  ];
+  let msgIdx = 0;
+  const msgEl = document.getElementById('generateLoadingText');
+  const msgInterval = setInterval(() => {
+    msgIdx = (msgIdx + 1) % loadingMsgs.length;
+    msgEl.textContent = loadingMsgs[msgIdx];
+  }, 2500);
+
+  const adjustments = comments ? `\n\nMEHAK'S ADJUSTMENTS TO THE STRATEGY:\n${comments}` : '';
+
+  const prompt = `You are generating a tailored resume and cover letter for Mehak Khattar. Follow the approved strategy exactly.
+
+APPROVED STRATEGY:
+- Positioning hypothesis: ${data.hypothesis}
+- Resume base: ${data.resumeBase}
+- Stories to lead with: ${(data.storiesKeep || []).join('; ')}
+- Things to cut or de-emphasise: ${(data.storiesCut || []).map(s => s.item).join('; ')}
+- Role: ${data.role} at ${data.company}
+- What this role is solving for: ${data.jdProblem}${adjustments}
+
+JOB DESCRIPTION:
+${state.currentJD}
+
+MEHAK'S FULL PROFILE:
+${MASTER_PROFILE}
+
+Now run prompts 3 through 8 in sequence and produce the final output.
+
+PROMPT 3 — Headline: One-line headline. Format: Job Title + 2 to 3 defining descriptors. Match JD language without copying directly. Descriptors signal method and domain.
+
+PROMPT 4 — Professional Profile: 3 to 5 sentences, third person, present tense. No adjectives, no lists. A coherent narrative: who she is professionally, what she brings, where she has done it. Mirror the framing of this JD. No hyphens or em dashes.
+
+PROMPT 5 — Skills Line: Single left-aligned line of 8 to 12 skills separated by commas. Pull language from JD wherever possible. Exists to pass ATS and signal range at a glance.
+
+PROMPT 6 — Story Selection: Already approved above. Use it.
+
+PROMPT 7 — Experience Bullets: Write the experience section. For each role include a one-line company descriptor in italics and bullets that are descriptor-led (example: "SEO Content Strategy:"). Rules: every bullet has at least one metric, no more than two figures per bullet, no passive voice, no "responsible for", outcomes not tasks. No hyphens or em dashes. Only include roles relevant to this position. CrackerJack may be shortened to one line if not central to this role.
+
+PROMPT 8 — Cover Letter: Write the full cover letter. Open with a specific story or observation connecting Mehak's work to what this company actually does. Not a generic opener. Include at least one paragraph on content methodology or SEO approach, one on operational ownership, and close with location and availability. Match header format to resume. No hyphens or em dashes. No AI writing tells. No words: tapestry, crafting, fosters, cultivates, game changer.
+
+OUTPUT FORMAT — return only valid JSON, no markdown, no backticks:
+{
+  "headline": "",
+  "profile": "",
+  "skills": "",
+  "experienceSection": "",
+  "coverLetter": ""
 }
 
-const content = data.content[0].text;
+The experienceSection should be plain text with role headers clearly marked.
+The coverLetter should be the full letter as plain text.`;
 
-const jsonMatch = content.match(/\{[\s\S]*\}/);
-if (jsonMatch) {
-  const result = JSON.parse(jsonMatch[0]);
-  setResumeText(result.resume);
-  setCoverLetterText(result.coverLetter);
-} else {
-  throw new Error('Could not parse AI response - no JSON found');
+  try {
+    const r = await fetch('/api/generate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ prompt, systemPrompt: SYSTEM_PROMPT })
+    });
+    const d = await r.json();
+    const text = d.content[0].text;
+    const jsonMatch = text.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) throw new Error('No JSON returned');
+    const result = JSON.parse(jsonMatch[0]);
+
+    const resume = buildResumeText(result);
+    const coverLetter = result.coverLetter || '';
+
+    state.generatedResume = resume;
+    state.generatedCover = coverLetter;
+
+    document.getElementById('result-resume').textContent = resume;
+    document.getElementById('result-cover').textContent = coverLetter;
+
+    goToStep(3);
+    pushToDrive(result, resume, coverLetter);
+
+  } catch(err) {
+    alert('Generation failed: ' + err.message);
+  } finally {
+    clearInterval(msgInterval);
+    document.getElementById('approveBtn').disabled = false;
+    document.getElementById('generateLoading').style.display = 'none';
+  }
 }
 
-            } catch (err) {
-              setError(`Error: ${err.message}`);
-            } finally {
-              setLoading(false);
-            }
-          };
+function buildResumeText(result) {
+  return `MEHAK KHATTAR
+${result.headline || ''}
 
-          const handleCopy = (text, type) => {
-            navigator.clipboard.writeText(text);
-            setCopied({ ...copied, [type]: true });
-            setTimeout(() => setCopied({ ...copied, [type]: false }), 2000);
-          };
+khattarmehak1@gmail.com  |  416.893.1395  |  mehak.works  |  Toronto, ON
 
-          const handleDownloadHTML = () => {
-            const { resumeHTML, coverLetterHTML } = convertToHTML(resumeText, coverLetterText);
-            downloadHTML(resumeHTML, 'Mehak_Khattar_Resume.html');
-            downloadHTML(coverLetterHTML, 'Mehak_Khattar_Cover_Letter.html');
-          };
+PROFESSIONAL PROFILE
 
-          return (
-            <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50 p-4">
-              <div className="max-w-7xl mx-auto">
-                <div className="bg-white rounded-lg shadow-xl p-8 mb-6">
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="text-indigo-600 text-3xl">💼</div>
-                    <h1 className="text-3xl font-bold text-gray-800">AI Resume & Cover Letter Generator</h1>
-                  </div>
-                  
-                  <p className="text-gray-600 mb-6">
-                    Paste job description → Get tailored HTML files → Open in Word → Save as DOCX
-                  </p>
+${result.profile || ''}
 
-                  <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6">
-                    <p className="text-sm text-gray-800">
-                      <strong>Pro Tip:</strong> Speed matters! ATS systems sort by application order. Apply fast!
-                    </p>
-                  </div>
+AREAS OF EXPERTISE
 
-                  <div className="space-y-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Job Description
-                      </label>
-                      <textarea
-                        value={jobDescription}
-                        onChange={(e) => setJobDescription(e.target.value)}
-                        className="w-full h-64 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
-                        placeholder="Paste the entire job description here..."
-                      />
-                    </div>
+${result.skills || ''}
 
-                    {showInfoPrompt && (
-                      <div className="bg-blue-50 border-l-4 border-blue-400 p-4">
-                        <p className="text-sm text-gray-800 mb-2">
-                          <strong>Missing:</strong> {missingInfo.join(' and ')}
-                        </p>
-                        <input
-                          type="text"
-                          value={additionalInfo}
-                          onChange={(e) => setAdditionalInfo(e.target.value)}
-                          className="w-full px-4 py-2 border border-gray-300 rounded"
-                          placeholder={`Enter ${missingInfo.join(' and ')}...`}
-                        />
-                      </div>
-                    )}
+PROFESSIONAL EXPERIENCE
 
-                    {error && (
-                      <div className="bg-red-50 border-l-4 border-red-400 p-4">
-                        <p className="text-sm text-red-800">{error}</p>
-                      </div>
-                    )}
+${result.experienceSection || ''}
 
-                    <button
-                      onClick={generateContent}
-                      disabled={loading}
-                      className="w-full bg-indigo-600 text-white py-4 px-6 rounded-lg hover:bg-indigo-700 disabled:bg-gray-400 font-medium text-lg"
-                    >
-                      {loading ? '⏳ Generating...' : '📄 Generate Documents'}
-                    </button>
-                  </div>
-                </div>
+EDUCATION, CREDENTIALS AND RECOGNITION
 
-                {(resumeText || coverLetterText) && (
-                  <div className="bg-white rounded-lg shadow-xl p-6 mb-6">
-                    <h2 className="text-2xl font-bold text-gray-800 mb-4">Generated Documents</h2>
-                    
-                    <div className="flex gap-4 mb-6">
-                      <button
-                        onClick={handleDownloadHTML}
-                        className="flex-1 bg-indigo-600 text-white py-3 px-6 rounded-lg hover:bg-indigo-700 font-medium"
-                      >
-                        ⬇️ Download Both as HTML
-                      </button>
-                      <button
-                        onClick={() => handleCopy(resumeText, 'resume')}
-                        className="px-6 py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-700"
-                      >
-                        {copied.resume ? '✓ Copied Resume!' : '📋 Copy Resume'}
-                      </button>
-                      <button
-                        onClick={() => handleCopy(coverLetterText, 'cover')}
-                        className="px-6 py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-700"
-                      >
-                        {copied.cover ? '✓ Copied Letter!' : '📋 Copy Letter'}
-                      </button>
-                    </div>
+Chartered Marketer (CM) — Canadian Marketing Association — 2025
+Postgraduate Certificate, Film and Multiplatform Storytelling — Humber College (Dean's List) — 2024
+Bachelor of Arts, Journalism and Mass Communication — Amity University — 2021
+Published Byline — Hindustan Times (one of Asia's largest English-language daily newspapers) — 2021
 
-                    <div className="bg-blue-50 border-l-4 border-blue-500 p-4 mb-4">
-                      <p className="font-bold text-blue-900 mb-2">📝 How to use HTML files:</p>
-                      <ol className="list-decimal ml-5 text-blue-800 space-y-1 text-sm">
-                        <li>Click "Download Both as HTML"</li>
-                        <li>Right-click each file → Open with Microsoft Word</li>
-                        <li>In Word: File → Save As → Choose ".docx"</li>
-                        <li>Perfect Garamond formatting preserved! 🎉</li>
-                      </ol>
-                    </div>
+TECHNICAL SKILLS
 
-                    <div className="grid md:grid-cols-2 gap-4">
-                      <div>
-                        <h3 className="font-bold text-gray-800 mb-2">Resume Preview:</h3>
-                        <div className="bg-gray-50 rounded p-4 max-h-96 overflow-y-auto">
-                          <pre className="whitespace-pre-wrap text-xs font-mono">{resumeText}</pre>
-                        </div>
-                      </div>
-                      <div>
-                        <h3 className="font-bold text-gray-800 mb-2">Cover Letter Preview:</h3>
-                        <div className="bg-gray-50 rounded p-4 max-h-96 overflow-y-auto">
-                          <pre className="whitespace-pre-wrap text-xs font-mono">{coverLetterText}</pre>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-          );
-        }
+${result.skills || ''}
 
-        ReactDOM.render(<ResumeGenerator />, document.getElementById('root'));
-    </script>
+English: Native-level fluency   French: Beginner, actively studying   Location: Toronto, ON — available hybrid or onsite`;
+}
+
+// ─── DRIVE PUSH ───────────────────────────────────────────────────────────────
+async function getFolderId(token) {
+  if (state.folderId) return state.folderId;
+  const name = 'Job Applications 2026';
+  const searchR = await fetch(
+    `https://www.googleapis.com/drive/v3/files?q=name='${name}' and mimeType='application/vnd.google-apps.folder' and trashed=false&fields=files(id)`,
+    { headers: { 'Authorization': `Bearer ${token}` } }
+  );
+  const searchD = await searchR.json();
+  if (searchD.files && searchD.files.length > 0) {
+    state.folderId = searchD.files[0].id;
+    return state.folderId;
+  }
+  return null;
+}
+
+async function pushToDrive(result, resume, coverLetter) {
+  const token = await getValidToken();
+  if (!token) {
+    document.getElementById('driveNotice').innerHTML = `<div class="notice notice-amber">Connect Google to save docs to Drive automatically.</div>`;
+    return;
+  }
+
+  try {
+    const folderId = await getFolderId(token);
+    const company = state.currentCompany;
+    const role = state.currentRole;
+    const date = new Date().toISOString().slice(0,10);
+
+    const resumeDocContent = buildDocContent(result, resume, false);
+    const coverDocContent = buildDocContent(result, coverLetter, true);
+
+    const resumeRes = await fetch('/api/drive', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify({
+        title: `${company} — ${role} — Resume — ${date}`,
+        content: resumeDocContent,
+        folderId
+      })
+    });
+    const resumeDoc = await resumeRes.json();
+
+    const coverRes = await fetch('/api/drive', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify({
+        title: `${company} — ${role} — Cover Letter — ${date}`,
+        content: coverDocContent,
+        folderId
+      })
+    });
+    const coverDoc = await coverRes.json();
+
+    state.resumeDocUrl = resumeDoc.url || '';
+    state.coverDocUrl = coverDoc.url || '';
+
+    if (state.resumeDocUrl) {
+      document.getElementById('openResumeDoc').style.display = 'inline-flex';
+    }
+    if (state.coverDocUrl) {
+      document.getElementById('openCoverDoc').style.display = 'inline-flex';
+    }
+
+    document.getElementById('driveNotice').innerHTML = `<div class="notice notice-green">Saved to Google Drive in Job Applications 2026.</div>`;
+
+    await logToTracker(resumeDoc.url, coverDoc.url);
+
+  } catch(err) {
+    document.getElementById('driveNotice').innerHTML = `<div class="notice notice-amber">Could not save to Drive: ${err.message}</div>`;
+  }
+}
+
+function buildDocContent(result, text, isCoverLetter) {
+  if (isCoverLetter) {
+    const lines = text.split('\n');
+    return lines.map(l => l.trim() ? l : '').join('\n');
+  }
+  return `NAME: MEHAK KHATTAR
+TAGLINE: ${result.headline || ''}
+CONTACT: khattarmehak1@gmail.com  |  416.893.1395  |  mehak.works  |  Toronto, ON
+
+SECTION: PROFESSIONAL PROFILE
+${result.profile || ''}
+
+SECTION: AREAS OF EXPERTISE
+SKILLS: ${result.skills || ''}
+
+SECTION: PROFESSIONAL EXPERIENCE
+${(result.experienceSection || '').split('\n').map(line => {
+  const t = line.trim();
+  if (!t) return '';
+  if (t.startsWith('•')) return 'BULLET: ' + t.slice(1).trim();
+  return t;
+}).join('\n')}
+
+SECTION: EDUCATION, CREDENTIALS AND RECOGNITION
+Chartered Marketer (CM) — Canadian Marketing Association — 2025
+Postgraduate Certificate, Film and Multiplatform Storytelling — Humber College (Dean's List) — 2024
+Bachelor of Arts, Journalism and Mass Communication — Amity University — 2021
+Published Byline — Hindustan Times — 2021
+
+SECTION: TECHNICAL SKILLS
+SKILLS: ${result.skills || ''}`;
+}
+
+async function logToTracker(resumeUrl, coverUrl) {
+  const token = await getValidToken();
+  if (!token) return;
+  try {
+    await fetch('/api/tracker', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify({
+        company: state.currentCompany,
+        role: state.currentRole,
+        datePosted: state.currentDatePosted,
+        dateApplied: new Date().toLocaleDateString('en-CA'),
+        status: 'Generated',
+        resumeVersion: state.hypothesisData?.resumeBase || '',
+        resumeUrl,
+        coverLetterUrl: coverUrl
+      })
+    });
+  } catch(e) {}
+}
+
+// ─── RESULT TABS ─────────────────────────────────────────────────────────────
+function showResultTab(tab, btn) {
+  document.getElementById('result-resume').style.display = tab === 'resume' ? 'block' : 'none';
+  document.getElementById('result-cover').style.display = tab === 'cover' ? 'block' : 'none';
+  document.querySelectorAll('.result-tab').forEach(t => t.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+}
+
+function copyResult(type) {
+  const text = type === 'resume' ? state.generatedResume : state.generatedCover;
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = event.target;
+    const orig = btn.textContent;
+    btn.textContent = 'Copied';
+    setTimeout(() => { btn.textContent = orig; }, 1500);
+  });
+}
+
+function openDoc(type) {
+  const url = type === 'resume' ? state.resumeDocUrl : state.coverDocUrl;
+  if (url) window.open(url, '_blank');
+}
+
+// ─── TRACKER ─────────────────────────────────────────────────────────────────
+async function loadTracker() {
+  const token = await getValidToken();
+  const body = document.getElementById('trackerBody');
+  const notice = document.getElementById('trackerNotice');
+
+  if (!token) {
+    body.innerHTML = '<tr><td colspan="7"><div class="empty-state">connect google to load applications</div></td></tr>';
+    document.getElementById('trackerCount').textContent = '';
+    notice.innerHTML = '<div class="notice notice-amber">Connect your Google account to load the tracker.</div>';
+    return;
+  }
+
+  notice.innerHTML = '';
+  body.innerHTML = '<tr><td colspan="7"><div class="empty-state"><span class="spinner"></span> loading...</div></td></tr>';
+
+  try {
+    const r = await fetch('/api/tracker', { headers: { 'Authorization': `Bearer ${token}` } });
+    const d = await r.json();
+
+    if (d.sheetUrl) {
+      state.trackerSheetId = d.sheetId;
+      state.trackerSheetUrl = d.sheetUrl;
+      const link = document.getElementById('sheetLink');
+      link.href = d.sheetUrl;
+      link.style.display = 'inline';
+    }
+
+    const apps = d.applications || [];
+    document.getElementById('trackerCount').textContent = apps.length + ' application' + (apps.length !== 1 ? 's' : '') + ' tracked';
+
+    if (apps.length === 0) {
+      body.innerHTML = '<tr><td colspan="7"><div class="empty-state">no applications yet — generate your first resume to start tracking</div></td></tr>';
+      return;
+    }
+
+    const statusColors = {
+      'Applied': 'badge-accent', 'Generated': 'badge-gray', 'Interviewing': 'badge-amber',
+      'Offer': 'badge-green', 'Rejected': 'badge-red', 'Withdrawn': 'badge-gray'
+    };
+
+    body.innerHTML = apps.reverse().map((app, i) => {
+      const status = app['Status'] || 'Generated';
+      const badgeClass = statusColors[status] || 'badge-gray';
+      const rowIdx = apps.length - i + 1;
+      return `<tr>
+        <td style="font-weight:500">${app['Company'] || ''}</td>
+        <td style="color:var(--text2)">${app['Role'] || ''}</td>
+        <td style="color:var(--text3);font-family:'DM Mono',monospace;font-size:12px">${app['Date Posted'] || ''}</td>
+        <td style="color:var(--text3);font-family:'DM Mono',monospace;font-size:12px">${app['Date Applied'] || ''}</td>
+        <td>
+          <select class="status-select" onchange="updateStatus(${rowIdx}, this.value)">
+            ${['Generated','Applied','Interviewing','Offer','Rejected','Withdrawn'].map(s => `<option${s===status?' selected':''}>${s}</option>`).join('')}
+          </select>
+        </td>
+        <td>${app['Resume URL'] ? `<a href="${app['Resume URL']}" target="_blank">Open</a>` : '<span style="color:var(--text3)">—</span>'}</td>
+        <td>${app['Cover Letter URL'] ? `<a href="${app['Cover Letter URL']}" target="_blank">Open</a>` : '<span style="color:var(--text3)">—</span>'}</td>
+      </tr>`;
+    }).join('');
+
+  } catch(err) {
+    notice.innerHTML = `<div class="notice notice-red">Failed to load tracker: ${err.message}</div>`;
+    body.innerHTML = '<tr><td colspan="7"><div class="empty-state">error loading data</div></td></tr>';
+  }
+}
+
+async function updateStatus(rowIndex, value) {
+  const token = await getValidToken();
+  if (!token || !state.trackerSheetId) return;
+  try {
+    await fetch('/api/tracker', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify({ rowIndex, field: 'Status', value, sheetId: state.trackerSheetId })
+    });
+  } catch(e) {}
+}
+
+// ─── OUTREACH ─────────────────────────────────────────────────────────────────
+async function generateOutreach() {
+  const name = document.getElementById('outFirstName').value.trim();
+  const title = document.getElementById('outTitle').value.trim();
+  const company = document.getElementById('outCompany').value.trim();
+  const role = document.getElementById('outRole').value.trim();
+  const notes = document.getElementById('outNotes').value.trim();
+
+  if (!name || !company || !role) {
+    alert('Please fill in name, company, and role at minimum.');
+    return;
+  }
+
+  document.getElementById('outreachLoading').style.display = 'block';
+  document.getElementById('outreachResults').innerHTML = '';
+
+  const prompt = `Generate three outreach messages for Mehak Khattar to send to ${name}${title ? ', ' + title : ''} at ${company}. She is interested in or has applied for the ${role} role.
+
+${notes ? 'Additional context: ' + notes : ''}
+
+MEHAK'S PROFILE SUMMARY:
+${MASTER_PROFILE}
+
+Generate all three messages. Rules for all:
+- No hyphens or em dashes as punctuation
+- No AI writing tells or filler phrases
+- Specific to this person and company, not generic
+- Mehak's voice: direct, confident, specific, warm but not corporate
+- Reference real results from her background
+- Short enough to read in under 30 seconds each
+
+1. LinkedIn CONNECTION REQUEST (under 280 characters, no note if no mutual context, otherwise a tight one-liner)
+2. LinkedIn INMAIL (4 to 6 sentences, subject line included, specific hook, one result, clear ask)
+3. COLD EMAIL (subject line + 3 short paragraphs: hook, proof, ask. Under 180 words total)
+
+Return only valid JSON, no markdown, no backticks:
+{
+  "connectionRequest": "",
+  "inMailSubject": "",
+  "inMail": "",
+  "emailSubject": "",
+  "coldEmail": ""
+}`;
+
+  try {
+    const r = await fetch('/api/generate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ prompt, systemPrompt: SYSTEM_PROMPT })
+    });
+    const d = await r.json();
+    const text = d.content[0].text;
+    const jsonMatch = text.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) throw new Error('No JSON returned');
+    const result = JSON.parse(jsonMatch[0]);
+
+    document.getElementById('outreachResults').innerHTML = `
+      ${outreachCard('Connection Request', '', result.connectionRequest, '280 char limit')}
+      ${outreachCard('LinkedIn InMail', result.inMailSubject, result.inMail, 'Subject: ' + result.inMailSubject)}
+      ${outreachCard('Cold Email', result.emailSubject, result.coldEmail, 'Subject: ' + result.emailSubject)}
+    `;
+  } catch(err) {
+    document.getElementById('outreachResults').innerHTML = `<div class="notice notice-red">Failed: ${err.message}</div>`;
+  } finally {
+    document.getElementById('outreachLoading').style.display = 'none';
+  }
+}
+
+function outreachCard(label, subject, body, meta) {
+  const id = 'oc-' + Math.random().toString(36).slice(2,7);
+  const fullText = subject ? `Subject: ${subject}\n\n${body}` : body;
+  return `<div class="card" style="margin-bottom:12px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+      <div>
+        <div class="section-label" style="margin-bottom:2px">${label}</div>
+        ${meta && subject ? `<div style="font-size:11px;color:var(--text3)">${meta}</div>` : ''}
+      </div>
+      <button class="btn btn-ghost btn-sm" onclick="copyOutreach('${id}')">Copy</button>
+    </div>
+    <div id="${id}" style="font-size:13px;color:var(--text2);line-height:1.7;white-space:pre-wrap">${fullText}</div>
+  </div>`;
+}
+
+function copyOutreach(id) {
+  const text = document.getElementById(id).textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    event.target.textContent = 'Copied';
+    setTimeout(() => { event.target.textContent = 'Copy'; }, 1500);
+  });
+}
+
+// ─── Q&A MODAL ───────────────────────────────────────────────────────────────
+function openQAModal() {
+  document.getElementById('qaModal').classList.add('open');
+}
+
+function closeQAModal() {
+  document.getElementById('qaModal').classList.remove('open');
+}
+
+function addAnotherQuestion() {
+  document.getElementById('qaQuestion').value = '';
+  document.getElementById('qaQuestion').focus();
+}
+
+async function answerQuestion() {
+  const question = document.getElementById('qaQuestion').value.trim();
+  if (!question) return;
+
+  const container = document.getElementById('qaAnswers');
+  const placeholder = document.createElement('div');
+  placeholder.className = 'qa-item';
+  placeholder.innerHTML = `<p>${question}</p><div class="qa-generating"><span class="spinner"></span> generating answer...</div>`;
+  container.prepend(placeholder);
+
+  const prompt = `Answer this application form question for Mehak Khattar applying for ${state.currentRole || 'a marketing role'} at ${state.currentCompany || 'a company'}.
+
+Question: ${question}
+
+MEHAK'S PROFILE:
+${MASTER_PROFILE}
+
+JOB CONTEXT:
+${state.currentJD ? state.currentJD.slice(0, 800) : 'General marketing role'}
+${state.hypothesisData ? 'Positioning: ' + state.hypothesisData.hypothesis : ''}
+
+Rules:
+- 3 to 5 sentences
+- Lead with direct confirmation of the ask
+- Follow with the most relevant specific example from her background with a real metric
+- Close with the method or mindset behind it
+- No hyphens or em dashes
+- No AI writing tells
+- First person, confident, direct`;
+
+  try {
+    const r = await fetch('/api/generate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ prompt, systemPrompt: SYSTEM_PROMPT })
+    });
+    const d = await r.json();
+    const answer = d.content[0].text;
+
+    placeholder.innerHTML = `
+      <p>${question}</p>
+      <div class="qa-answer">${answer}</div>
+      <div style="display:flex;gap:6px;margin-top:8px">
+        <button class="btn btn-ghost btn-sm" onclick="copyQA(this)">Copy</button>
+      </div>
+    `;
+    document.getElementById('qaQuestion').value = '';
+  } catch(err) {
+    placeholder.innerHTML = `<p>${question}</p><div class="notice notice-red">Failed: ${err.message}</div>`;
+  }
+}
+
+function copyQA(btn) {
+  const answer = btn.parentElement.previousElementSibling.textContent;
+  navigator.clipboard.writeText(answer).then(() => {
+    btn.textContent = 'Copied';
+    setTimeout(() => { btn.textContent = 'Copy'; }, 1500);
+  });
+}
+
+// ─── INIT ─────────────────────────────────────────────────────────────────────
+handleOAuthReturn();
+loadTokens();
+</script>
 </body>
 </html>
